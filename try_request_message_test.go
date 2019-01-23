@@ -86,6 +86,30 @@ func TestTryRequestMismatch(t *testing.T) {
 				webtest.WithAssertJSONResponse(`{"status": "ok"}`),
 			},
 		},
+		{
+			Name:         "path",
+			MustIncluded: `GET /`,
+			Handler: http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					io.WriteString(w, `{"message": "ok"}`)
+				},
+			),
+			Options: []func(*webtest.TryRequestInput) error{
+				webtest.WithAssertJSONResponse(`{"status": "ok"}`),
+			},
+		},
+		{
+			Name:         "diff",
+			MustIncluded: `## diff (- missing, + excess)`,
+			Handler: http.HandlerFunc(
+				func(w http.ResponseWriter, r *http.Request) {
+					io.WriteString(w, `{"message": "ok"}`)
+				},
+			),
+			Options: []func(*webtest.TryRequestInput) error{
+				webtest.WithAssertJSONResponse(`{"status": "ok"}`),
+			},
+		},
 	}
 
 	for _, c := range cases {
