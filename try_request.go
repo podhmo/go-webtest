@@ -15,12 +15,13 @@ import (
 
 // TryRequestInput :
 type TryRequestInput struct {
-	Method     string
-	Path       string
-	Body       io.Reader
-	Assertions []func(t testing.TB, res *TryRequestOutput)
-	Response   TryRequestOutput
+	Method   string
+	Path     string
+	Body     io.Reader
+	Response TryRequestOutput
 
+	assertions []func(t testing.TB, res *TryRequestOutput)
+	callbacks  []func(req *http.Request)
 	bodyString string
 }
 
@@ -29,6 +30,17 @@ type TryRequestOutput struct {
 	Input *TryRequestInput
 	Body  bytes.Buffer
 	*http.Response
+}
+
+// TryJSONRequest :
+func TryJSONRequest(t testing.TB, mux http.Handler, method, path string, status int, options ...func(*TryRequestInput) error) *TryRequestOutput {
+	t.Helper()
+	return TryRequest(t, mux, method, path, status, append(
+		options,
+		WithModifyRequest(func(req *http.Request) {
+			req.Header.Set("Content-Type", "application/json")
+		}),
+	)...)
 }
 
 // TryRequest :
@@ -46,9 +58,9 @@ func TryRequest(t testing.TB, mux http.Handler, method, path string, status int,
 		}
 	}
 	req := httptest.NewRequest(input.Method, input.Path, input.Body)
-
-	// todo: to option
-	req.Header.Set("Content-Type", "application/json")
+	for _, cb := range input.callbacks {
+		cb(req)
+	}
 	rec := httptest.NewRecorder()
 	mux.ServeHTTP(rec, req)
 
@@ -71,7 +83,7 @@ func TryRequest(t testing.TB, mux http.Handler, method, path string, status int,
 		return nil
 	}
 
-	for _, assert := range input.Assertions {
+	for _, assert := range input.assertions {
 		assert(t, &output)
 	}
 	return &output
@@ -86,10 +98,18 @@ func WithJSONBody(body string) func(input *TryRequestInput) error {
 	}
 }
 
+// WithModifyRequest :
+func WithModifyRequest(callback func(*http.Request)) func(input *TryRequestInput) error {
+	return func(input *TryRequestInput) error {
+		input.callbacks = append(input.callbacks, callback)
+		return nil
+	}
+}
+
 // WithAssert :
 func WithAssert(assert func(t testing.TB, output *TryRequestOutput)) func(input *TryRequestInput) error {
 	return func(input *TryRequestInput) error {
-		input.Assertions = append(input.Assertions, assert)
+		input.assertions = append(input.assertions, assert)
 		return nil
 	}
 }
@@ -110,7 +130,8 @@ func WithAssertJSONResponse(body string) func(input *TryRequestInput) error {
 			expected = string(b)
 		}
 
-		input.Assertions = append(input.Assertions, func(t testing.TB, output *TryRequestOutput) {
+		input.assertions = append(input.assertions, func(t testing.TB, output *TryRequestOutput) {
+			t.Helper()
 			var actual string
 			var ob interface{}
 

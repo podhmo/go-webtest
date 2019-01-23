@@ -15,12 +15,13 @@ func TestTryRequest(t *testing.T) {
 				w.Write([]byte(`{"message": "ok"}`))
 			},
 		)
-		webtest.TryRequest(
+		webtest.TryJSONRequest(
 			t,
 			handler,
 			"GET",
 			"/",
 			http.StatusOK,
+			webtest.WithAssertJSONResponse(`{"message": "ok"}`),
 		)
 	})
 }
