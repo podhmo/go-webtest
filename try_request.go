@@ -13,39 +13,39 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TryRequestRequest :
-type TryRequestRequest struct {
+// TryRequestInput :
+type TryRequestInput struct {
 	Method     string
 	Path       string
 	Body       io.Reader
-	Assertions []func(t testing.TB, res *TryRequestResponse)
-	Response   TryRequestResponse
+	Assertions []func(t testing.TB, res *TryRequestOutput)
+	Response   TryRequestOutput
 
 	bodyString string
 }
 
-// TryRequestResponse :
-type TryRequestResponse struct {
-	Request *TryRequestRequest
-	Body    bytes.Buffer
+// TryRequestOutput :
+type TryRequestOutput struct {
+	Input *TryRequestInput
+	Body  bytes.Buffer
 	*http.Response
 }
 
 // TryRequest :
-func TryRequest(t testing.TB, mux http.Handler, method, path string, status int, options ...func(*TryRequestRequest) error) *TryRequestResponse {
+func TryRequest(t testing.TB, mux http.Handler, method, path string, status int, options ...func(*TryRequestInput) error) *TryRequestOutput {
 	t.Helper()
-	treq := &TryRequestRequest{
+	input := &TryRequestInput{
 		Method: method,
 		Path:   path,
 	}
 
 	for _, op := range options {
-		if err := op(treq); err != nil {
+		if err := op(input); err != nil {
 			t.Fatalf("apply option %+v", err)
 			return nil
 		}
 	}
-	req := httptest.NewRequest(treq.Method, treq.Path, treq.Body)
+	req := httptest.NewRequest(input.Method, input.Path, input.Body)
 
 	// todo: to option
 	req.Header.Set("Content-Type", "application/json")
@@ -53,50 +53,50 @@ func TryRequest(t testing.TB, mux http.Handler, method, path string, status int,
 	mux.ServeHTTP(rec, req)
 
 	res := rec.Result()
-	tresponse := TryRequestResponse{
-		Request:  treq,
+	output := TryRequestOutput{
+		Input:    input,
 		Response: res,
 	}
 
 	{
-		if _, err := io.Copy(&tresponse.Body, res.Body); err != nil {
+		if _, err := io.Copy(&output.Body, res.Body); err != nil {
 			t.Fatalf("parse responose, something wrong: %+v", err)
 			return nil
 		}
-		res.Body = ioutil.NopCloser(&tresponse.Body)
+		res.Body = ioutil.NopCloser(&output.Body)
 	}
 
 	if expected, got := status, res.StatusCode; got != expected {
-		t.Fatalf("status code: expected %d, but %d\n%s", expected, got, tresponse.Body.String())
+		t.Fatalf("status code: expected %d, but %d\n%s", expected, got, output.Body.String())
 		return nil
 	}
 
-	for _, assert := range treq.Assertions {
-		assert(t, &tresponse)
+	for _, assert := range input.Assertions {
+		assert(t, &output)
 	}
-	return &tresponse
+	return &output
 }
 
 // WithJSONBody :
-func WithJSONBody(body string) func(treq *TryRequestRequest) error {
-	return func(treq *TryRequestRequest) error {
-		treq.bodyString = body
-		treq.Body = bytes.NewBufferString(body)
+func WithJSONBody(body string) func(input *TryRequestInput) error {
+	return func(input *TryRequestInput) error {
+		input.bodyString = body
+		input.Body = bytes.NewBufferString(body)
 		return nil
 	}
 }
 
 // WithAssert :
-func WithAssert(assert func(t testing.TB, res *TryRequestResponse)) func(treq *TryRequestRequest) error {
-	return func(treq *TryRequestRequest) error {
-		treq.Assertions = append(treq.Assertions, assert)
+func WithAssert(assert func(t testing.TB, output *TryRequestOutput)) func(input *TryRequestInput) error {
+	return func(input *TryRequestInput) error {
+		input.Assertions = append(input.Assertions, assert)
 		return nil
 	}
 }
 
 // WithAssertJSONResponse :
-func WithAssertJSONResponse(body string) func(treq *TryRequestRequest) error {
-	return func(treq *TryRequestRequest) error {
+func WithAssertJSONResponse(body string) func(input *TryRequestInput) error {
+	return func(input *TryRequestInput) error {
 		var expected string
 		{
 			var ob interface{}
@@ -110,14 +110,14 @@ func WithAssertJSONResponse(body string) func(treq *TryRequestRequest) error {
 			expected = string(b)
 		}
 
-		treq.Assertions = append(treq.Assertions, func(t testing.TB, res *TryRequestResponse) {
+		input.Assertions = append(input.Assertions, func(t testing.TB, output *TryRequestOutput) {
 			var actual string
 			var ob interface{}
 
 			{
-				decoder := json.NewDecoder(&res.Body)
+				decoder := json.NewDecoder(&output.Body)
 				if err := decoder.Decode(&ob); err != nil {
-					t.Fatalf("unexpected response:\n%q", res.Body.String())
+					t.Fatalf("unexpected response:\n%q", output.Body.String())
 				}
 				b, err := json.MarshalIndent(&ob, "", "  ")
 				if err != nil {
@@ -145,9 +145,9 @@ func WithAssertJSONResponse(body string) func(treq *TryRequestRequest) error {
 ## actual response
 %s`,
 					diff,
-					res.Request.Method,
-					res.Request.Path,
-					res.Request.bodyString,
+					output.Input.Method,
+					output.Input.Path,
+					output.Input.bodyString,
 					expected,
 					actual)
 			}
