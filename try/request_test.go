@@ -1,13 +1,13 @@
-package webtest_test
+package try_test
 
 import (
 	"net/http"
 	"testing"
 
-	webtest "github.com/podhmo/go-webtest"
+	"github.com/podhmo/go-webtest/try"
 )
 
-func TestTryRequest(t *testing.T) {
+func TestRequest(t *testing.T) {
 	t.Run("response", func(t *testing.T) {
 		handler := http.HandlerFunc(
 			func(w http.ResponseWriter, r *http.Request) {
@@ -16,13 +16,13 @@ func TestTryRequest(t *testing.T) {
 			},
 		)
 
-		webtest.TryJSONRequest(
+		try.JSONRequest(
 			t,
 			handler,
 			"GET",
 			"/",
 			http.StatusOK,
-			webtest.WithAssertJSONResponse(`{"message": "ok", "id": "1"}`),
+			try.WithAssertJSONResponse(`{"message": "ok", "id": "1"}`),
 		)
 	})
 
@@ -43,13 +43,13 @@ func TestTryRequest(t *testing.T) {
 			},
 		)
 
-		webtest.TryJSONRequest(
+		try.JSONRequest(
 			t,
 			handler,
 			"GET",
 			"/",
 			http.StatusOK,
-			webtest.WithModifyRequest(func(req *http.Request) {
+			try.WithModifyRequest(func(req *http.Request) {
 				req.SetBasicAuth("*username*", "*password*")
 			}),
 		)
@@ -61,13 +61,13 @@ func TestTryRequest(t *testing.T) {
 				w.WriteHeader(http.StatusSeeOther)
 			},
 		)
-		webtest.TryJSONRequest(
+		try.JSONRequest(
 			t,
 			handler,
 			"GET",
 			"/",
 			http.StatusSeeOther,
-			webtest.WithAssertFunc(func(t testing.TB, output *webtest.TryRequestOutput) {
+			try.WithAssertFunc(func(t testing.TB, output *try.Output) {
 				location := output.Response.Header.Get("location")
 				if expected, actual := "/newplace", location; expected != actual {
 					t.Errorf("invalid redirect-location, expected=%q, actual=%q", expected, actual)

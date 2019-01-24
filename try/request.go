@@ -1,4 +1,4 @@
-package webtest
+package try
 
 import (
 	"bytes"
@@ -13,28 +13,28 @@ import (
 	"github.com/pkg/errors"
 )
 
-// TryRequestInput :
-type TryRequestInput struct {
+// Input :
+type Input struct {
 	Method string
 	Path   string
 	Body   io.Reader
 
-	assertions []func(t testing.TB, res *TryRequestOutput)
+	assertions []func(t testing.TB, res *Output)
 	callbacks  []func(req *http.Request)
 	bodyString string
 }
 
-// TryRequestOutput :
-type TryRequestOutput struct {
-	Input    *TryRequestInput
+// Output :
+type Output struct {
+	Input    *Input
 	Body     bytes.Buffer
 	Response *http.Response
 }
 
-// TryJSONRequest :
-func TryJSONRequest(t testing.TB, mux http.Handler, method, path string, status int, options ...func(*TryRequestInput) error) *TryRequestOutput {
+// JSONRequest :
+func JSONRequest(t testing.TB, mux http.Handler, method, path string, status int, options ...func(*Input) error) *Output {
 	t.Helper()
-	return TryRequest(t, mux, method, path, status, append(
+	return Request(t, mux, method, path, status, append(
 		options,
 		WithModifyRequest(func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/json")
@@ -42,10 +42,10 @@ func TryJSONRequest(t testing.TB, mux http.Handler, method, path string, status 
 	)...)
 }
 
-// TryRequest :
-func TryRequest(t testing.TB, mux http.Handler, method, path string, status int, options ...func(*TryRequestInput) error) *TryRequestOutput {
+// Request :
+func Request(t testing.TB, mux http.Handler, method, path string, status int, options ...func(*Input) error) *Output {
 	t.Helper()
-	input := &TryRequestInput{
+	input := &Input{
 		Method: method,
 		Path:   path,
 	}
@@ -64,7 +64,7 @@ func TryRequest(t testing.TB, mux http.Handler, method, path string, status int,
 	mux.ServeHTTP(rec, req)
 
 	res := rec.Result()
-	output := TryRequestOutput{
+	output := Output{
 		Input:    input,
 		Response: res,
 	}
@@ -89,8 +89,8 @@ func TryRequest(t testing.TB, mux http.Handler, method, path string, status int,
 }
 
 // WithJSONBody :
-func WithJSONBody(body string) func(input *TryRequestInput) error {
-	return func(input *TryRequestInput) error {
+func WithJSONBody(body string) func(input *Input) error {
+	return func(input *Input) error {
 		input.bodyString = body
 		input.Body = bytes.NewBufferString(body)
 		return nil
@@ -98,24 +98,24 @@ func WithJSONBody(body string) func(input *TryRequestInput) error {
 }
 
 // WithModifyRequest :
-func WithModifyRequest(callback func(*http.Request)) func(input *TryRequestInput) error {
-	return func(input *TryRequestInput) error {
+func WithModifyRequest(callback func(*http.Request)) func(input *Input) error {
+	return func(input *Input) error {
 		input.callbacks = append(input.callbacks, callback)
 		return nil
 	}
 }
 
 // WithAssertFunc :
-func WithAssertFunc(assert func(t testing.TB, output *TryRequestOutput)) func(input *TryRequestInput) error {
-	return func(input *TryRequestInput) error {
+func WithAssertFunc(assert func(t testing.TB, output *Output)) func(input *Input) error {
+	return func(input *Input) error {
 		input.assertions = append(input.assertions, assert)
 		return nil
 	}
 }
 
 // WithAssertJSONResponse :
-func WithAssertJSONResponse(body string) func(input *TryRequestInput) error {
-	return func(input *TryRequestInput) error {
+func WithAssertJSONResponse(body string) func(input *Input) error {
+	return func(input *Input) error {
 		var expected string
 		{
 			var ob interface{}
@@ -129,7 +129,7 @@ func WithAssertJSONResponse(body string) func(input *TryRequestInput) error {
 			expected = string(b)
 		}
 
-		input.assertions = append(input.assertions, func(t testing.TB, output *TryRequestOutput) {
+		input.assertions = append(input.assertions, func(t testing.TB, output *Output) {
 			t.Helper()
 			var actual string
 			var ob interface{}
