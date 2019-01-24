@@ -1,4 +1,4 @@
-package webtest_test
+package try_test
 
 import (
 	"fmt"
@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	webtest "github.com/podhmo/go-webtest"
+	"github.com/podhmo/go-webtest/try"
 )
 
 // helper for testing
@@ -45,12 +45,12 @@ func (ft *fakeT) Fatalf(fmt string, args ...interface{}) {
 	})
 }
 
-func TestTryRequestMismatch(t *testing.T) {
+func TestRequestMismatch(t *testing.T) {
 	cases := []struct {
 		Name         string
 		MustIncluded string
 		Handler      http.HandlerFunc
-		Options      []func(*webtest.TryRequestInput) error
+		Options      []func(*try.Input) error
 	}{
 		{
 			Name:         "status",
@@ -70,8 +70,8 @@ func TestTryRequestMismatch(t *testing.T) {
 					io.WriteString(w, `{"message": "ok"}`)
 				},
 			),
-			Options: []func(*webtest.TryRequestInput) error{
-				webtest.WithAssertJSONResponse(`{"status": "ok"}`),
+			Options: []func(*try.Input) error{
+				try.WithAssertJSONResponse(`{"status": "ok"}`),
 			},
 		},
 		{
@@ -82,8 +82,8 @@ func TestTryRequestMismatch(t *testing.T) {
 					io.WriteString(w, `{"message": "ok"}`)
 				},
 			),
-			Options: []func(*webtest.TryRequestInput) error{
-				webtest.WithAssertJSONResponse(`{"status": "ok"}`),
+			Options: []func(*try.Input) error{
+				try.WithAssertJSONResponse(`{"status": "ok"}`),
 			},
 		},
 		{
@@ -94,8 +94,8 @@ func TestTryRequestMismatch(t *testing.T) {
 					io.WriteString(w, `{"message": "ok"}`)
 				},
 			),
-			Options: []func(*webtest.TryRequestInput) error{
-				webtest.WithAssertJSONResponse(`{"status": "ok"}`),
+			Options: []func(*try.Input) error{
+				try.WithAssertJSONResponse(`{"status": "ok"}`),
 			},
 		},
 		{
@@ -106,8 +106,8 @@ func TestTryRequestMismatch(t *testing.T) {
 					io.WriteString(w, `{"message": "ok"}`)
 				},
 			),
-			Options: []func(*webtest.TryRequestInput) error{
-				webtest.WithAssertJSONResponse(`{"status": "ok"}`),
+			Options: []func(*try.Input) error{
+				try.WithAssertJSONResponse(`{"status": "ok"}`),
 			},
 		},
 	}
@@ -117,7 +117,7 @@ func TestTryRequestMismatch(t *testing.T) {
 			ft := &fakeT{T: t}
 
 			// must error
-			webtest.TryRequest(ft, c.Handler, "GET", "/", http.StatusOK, c.Options...)
+			try.Request(ft, c.Handler, "GET", "/", http.StatusOK, c.Options...)
 
 			if expected := 1; len(ft.Called) != expected {
 				t.Fatalf("unexpected calling, expected call count is %d, but actual is %d", expected, len(ft.Called))
