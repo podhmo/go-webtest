@@ -15,10 +15,9 @@ import (
 
 // TryRequestInput :
 type TryRequestInput struct {
-	Method   string
-	Path     string
-	Body     io.Reader
-	Response TryRequestOutput
+	Method string
+	Path   string
+	Body   io.Reader
 
 	assertions []func(t testing.TB, res *TryRequestOutput)
 	callbacks  []func(req *http.Request)
@@ -27,9 +26,9 @@ type TryRequestInput struct {
 
 // TryRequestOutput :
 type TryRequestOutput struct {
-	Input *TryRequestInput
-	Body  bytes.Buffer
-	*http.Response
+	Input    *TryRequestInput
+	Body     bytes.Buffer
+	Response *http.Response
 }
 
 // TryJSONRequest :
@@ -106,8 +105,8 @@ func WithModifyRequest(callback func(*http.Request)) func(input *TryRequestInput
 	}
 }
 
-// WithAssert :
-func WithAssert(assert func(t testing.TB, output *TryRequestOutput)) func(input *TryRequestInput) error {
+// WithAssertFunc :
+func WithAssertFunc(assert func(t testing.TB, output *TryRequestOutput)) func(input *TryRequestInput) error {
 	return func(input *TryRequestInput) error {
 		input.assertions = append(input.assertions, assert)
 		return nil
