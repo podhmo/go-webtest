@@ -1,12 +1,14 @@
 ## go-webtest
 
+easy is better than simple. 
+
+### try
+
 install
 
 ```console
-$ go get -v github.com/podhmo/go-webtest
+$ go get -v github.com/podhmo/go-webtest/try
 ```
-
-### TryJSONRequest
 
 handler
 
@@ -26,6 +28,8 @@ func Handler(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(w, `{"message": "hello %[1]s", "name": "%[1]s"}`, params["name"])
 }
 ```
+
+test output
 
 ```
 --- FAIL: Test (0.00s)
@@ -61,7 +65,7 @@ func Handler(w http.ResponseWriter, r *http.Request) {
             }
 FAIL
 exit status 1
-FAIL	github.com/podhmo/go-webtest/examples/tryrequest	0.005s
+FAIL	github.com/podhmo/go-webtest/_examples/try	0.005s
 ```
 
 test code
@@ -75,35 +79,35 @@ import (
 	"net/http"
 	"testing"
 
-	webtest "github.com/podhmo/go-webtest"
+	"github.com/podhmo/go-webtest/try"
 )
 
 func Test(t *testing.T) {
 	t.Run("status mismatch", func(t *testing.T) {
 		mux := http.HandlerFunc(Handler)
-		webtest.TryJSONRequest(
+		try.JSONRequest(
 			t,
 			mux,
 			"GET",
 			"/",
 			http.StatusOK,
-			webtest.WithAssertJSONResponse(
+			try.WithAssertJSONResponse(
 				`{"message": "hello world"}`,
 			))
 	})
 
 	t.Run("response mismatch", func(t *testing.T) {
 		mux := http.HandlerFunc(Handler)
-		webtest.TryRequest(
+		try.Request(
 			t,
 			mux,
 			"GET",
 			"/",
 			http.StatusOK,
-			webtest.WithJSONBody(
+			try.WithJSONBody(
 				`{"name": "WORLD"}`,
 			),
-			webtest.WithAssertJSONResponse(
+			try.WithAssertJSONResponse(
 				`{"message": "hello world"}`,
 			))
 	})
