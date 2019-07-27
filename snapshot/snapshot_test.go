@@ -1,29 +1,16 @@
-package snapshot_test
+package snapshot
 
 import (
 	"encoding/json"
 	"reflect"
 	"testing"
-
-	"github.com/podhmo/go-webtest/snapshot"
 )
 
-type person struct {
-	Name string `json:"name"`
-	Age  int    `json:"age"`
-}
-
-func getData() person {
-	return person{
-		Name: "foo",
-		Age:  20,
-	}
-}
-
 func TestSimple(t *testing.T) {
+	got := GetData() // see: helper_test.go
+
 	// checking by json
-	got := getData()
-	if want := snapshot.Take(t, got); !reflect.DeepEqual(normalize(got), normalize(want)) {
+	if want := Take(t, got); !reflect.DeepEqual(normalize(got), normalize(want)) {
 		t.Errorf("want %v, but got %v", want, got)
 	}
 }
