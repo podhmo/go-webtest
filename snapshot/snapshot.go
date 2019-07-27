@@ -61,6 +61,14 @@ func (c *Config) Run(
 // default recorder
 var recorder = NewTestdataRecorder(NewJSONLoader())
 
+// Record saves data
+func Record(
+	t testing.TB,
+	got interface{},
+) interface{} {
+	return Take(t, got, WithForceUpdate())
+}
+
 // Take snapshot tests if needed and return expected data
 func Take(
 	t testing.TB,
