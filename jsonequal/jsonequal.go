@@ -58,8 +58,8 @@ func FromBytes(b []byte) func() (interface{}, []byte, error) {
 	}
 }
 
-// Equal :
-func Equal(
+// ShouldBeSame :
+func ShouldBeSame(
 	lsrc func() (interface{}, []byte, error),
 	rsrc func() (interface{}, []byte, error),
 	options ...func(*Caller),
@@ -91,6 +91,15 @@ func Equal(
 		return caller.WrapfFunc(caller.FailFunc(lv, rv, lb, rb), "equal")
 	}
 	return nil
+}
+
+// Equal :
+func Equal(
+	lsrc func() (interface{}, []byte, error),
+	rsrc func() (interface{}, []byte, error),
+	options ...func(*Caller),
+) bool {
+	return ShouldBeSame(lsrc, rsrc, options...) == nil
 }
 
 func defaultFail(
