@@ -16,6 +16,24 @@ type Caller struct {
 	FailFunc  func(left interface{}, right interface{}, lb []byte, rb []byte) error
 }
 
+// MustNormalize :
+func MustNormalize(src interface{}) interface{} {
+	dst, err := Normalize(src)
+	if err != nil {
+		panic(err)
+	}
+	return dst
+}
+
+// Normalize :
+func Normalize(src interface{}) (interface{}, error) {
+	dst, _, err := From(src)()
+	if err != nil {
+		return nil, err
+	}
+	return dst, nil
+}
+
 // From :
 func From(iface interface{}) func() (interface{}, []byte, error) {
 	return func() (interface{}, []byte, error) {
