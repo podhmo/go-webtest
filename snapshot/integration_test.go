@@ -10,7 +10,7 @@ import (
 func TestIt(t *testing.T) {
 	got := snapshot.GetData() // see: helper_test.go
 	want := snapshot.Take(t, got)
-	if err := jsonequal.Equal(jsonequal.From(got), jsonequal.From(want)); err != nil {
+	if err := jsonequal.ShouldBeSame(jsonequal.From(got), jsonequal.From(want)); err != nil {
 		t.Errorf("%+v", err)
 	}
 }
