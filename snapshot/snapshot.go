@@ -58,9 +58,6 @@ func (c *Config) Run(
 	return want
 }
 
-// default recorder
-var recorder = NewTestdataRecorder(NewJSONLoader())
-
 // Record saves data
 func Record(
 	t testing.TB,
@@ -76,16 +73,19 @@ func Take(
 	options ...func(*Config),
 ) interface{} {
 	c := &Config{
-		Recorder:  recorder,
 		Overwrite: false,
 	}
 
 	// default overwrite
 	WithUpdateByEnvvar("SNAPSHOT")(c)
-
 	for _, opt := range options {
 		opt(c)
 	}
+	if c.Recorder == nil {
+		// default recorder
+		c.Recorder = NewTestdataRecorder(NewJSONLoader())
+	}
+
 	return c.Run(t, got)
 }
 

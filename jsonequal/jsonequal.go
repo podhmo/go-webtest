@@ -114,6 +114,6 @@ func defaultFail(
 	rb []byte,
 ) error {
 	// todo : more redable expression
-	msg := "not equal json\nleft:\n	%s\nright:\n	%s\n"
+	msg := "not equal json\nleft:\n	%s\nright:\n	%s"
 	return fmt.Errorf(msg, string(lb), string(rb))
 }
