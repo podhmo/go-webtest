@@ -76,6 +76,11 @@ func FromBytes(b []byte) func() (interface{}, []byte, error) {
 	}
 }
 
+// FromString :
+func FromString(s string) func() (interface{}, []byte, error) {
+	return FromBytes([]byte(s))
+}
+
 // ShouldBeSame :
 func ShouldBeSame(
 	lsrc func() (interface{}, []byte, error),
