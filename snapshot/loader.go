@@ -5,6 +5,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"time"
 )
 
 // Loader :
@@ -48,6 +49,18 @@ func (r *Loader) Load(fpath string, want interface{}) (err error) {
 	return nil
 }
 
+// todo: add mtime?
+
+type saveData struct {
+	CTime time.Time   `json:"ctime"`
+	Data  interface{} `json:"data"`
+}
+
+type loadData struct {
+	CTime time.Time       `json:"ctime"`
+	Data  json.RawMessage `json:"data"`
+}
+
 // NewJSONLoader :
 func NewJSONLoader() *Loader {
 	return &Loader{
@@ -55,11 +68,16 @@ func NewJSONLoader() *Loader {
 			encoder := json.NewEncoder(w)
 			encoder.SetIndent("", "  ")
 			encoder.SetEscapeHTML(false)
-			return encoder.Encode(val)
+			data := &saveData{CTime: time.Now(), Data: val}
+			return encoder.Encode(data)
 		},
 		Decode: func(r io.Reader, val interface{}) error {
 			decoder := json.NewDecoder(r)
-			return decoder.Decode(val)
+			var data loadData
+			if err := decoder.Decode(&data); err != nil {
+				return err
+			}
+			return json.Unmarshal(data.Data, val)
 		},
 	}
 }
