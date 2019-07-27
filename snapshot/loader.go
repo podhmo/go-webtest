@@ -52,13 +52,13 @@ func (r *Loader) Load(fpath string, want interface{}) (err error) {
 // todo: add mtime?
 
 type saveData struct {
-	CTime time.Time   `json:"ctime"`
-	Data  interface{} `json:"data"`
+	ModifiedAt time.Time   `json:"modifiedAt"`
+	Data       interface{} `json:"data"`
 }
 
 type loadData struct {
-	CTime time.Time       `json:"ctime"`
-	Data  json.RawMessage `json:"data"`
+	ModifiedAt time.Time       `json:"modifiedAt"`
+	Data       json.RawMessage `json:"data"`
 }
 
 // NewJSONLoader :
@@ -68,7 +68,7 @@ func NewJSONLoader() *Loader {
 			encoder := json.NewEncoder(w)
 			encoder.SetIndent("", "  ")
 			encoder.SetEscapeHTML(false)
-			data := &saveData{CTime: time.Now(), Data: val}
+			data := &saveData{ModifiedAt: time.Now(), Data: val}
 			return encoder.Encode(data)
 		},
 		Decode: func(r io.Reader, val interface{}) error {
