@@ -42,6 +42,13 @@ func FromRaw(iface interface{}) func() (interface{}, []byte, error) {
 	}
 }
 
+// FromRawWithBytes :
+func FromRawWithBytes(iface interface{}, b []byte) func() (interface{}, []byte, error) {
+	return func() (interface{}, []byte, error) {
+		return iface, b, nil
+	}
+}
+
 // FromReader :
 func FromReader(reader io.Reader) func() (interface{}, []byte, error) {
 	return func() (interface{}, []byte, error) {
