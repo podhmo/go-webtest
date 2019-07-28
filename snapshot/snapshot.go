@@ -6,6 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/podhmo/go-webtest/jsonequal"
 )
 
 // Recorder :
@@ -117,5 +119,12 @@ func WithUpdateByEnvvar(s string) func(*Config) {
 func WithReplaceMap(repMap map[string]interface{}) func(*Config) {
 	return func(c *Config) {
 		c.ReplaceMap = repMap
+	}
+}
+
+// WithReplaceMapNormalized replace data when loading stored data
+func WithReplaceMapNormalized(repMap map[string]interface{}) func(*Config) {
+	return func(c *Config) {
+		c.ReplaceMap = jsonequal.MustNormalize(repMap).(map[string]interface{})
 	}
 }
