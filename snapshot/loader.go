@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/podhmo/go-webtest/replace"
 )
 
@@ -22,7 +23,7 @@ type Loader struct {
 func (r *Loader) Save(fpath string, val interface{}, repMap map[string]interface{}) (err error) {
 	if err := os.Mkdir(filepath.Dir(fpath), 0744); err != nil {
 		if !os.IsExist(err) {
-			return err
+			return errors.WithMessagef(err, "create testdata directory, %q", filepath.Dir(fpath))
 		}
 	}
 	wf, err := os.Create(fpath)
@@ -40,7 +41,7 @@ func (r *Loader) Save(fpath string, val interface{}, repMap map[string]interface
 func (r *Loader) Load(fpath string, want interface{}, repMap map[string]interface{}) (err error) {
 	rf, err := os.Open(fpath)
 	if err != nil {
-		return err
+		return errors.WithMessage(err, "on open file")
 	}
 	defer func() {
 		if cerr := rf.Close(); cerr != nil {
@@ -48,7 +49,7 @@ func (r *Loader) Load(fpath string, want interface{}, repMap map[string]interfac
 		}
 	}()
 	if err := r.Decode(rf, want, repMap); err != nil {
-		return err
+		return errors.WithMessage(err, "on decoder.Decode")
 	}
 	return nil
 }
@@ -79,21 +80,27 @@ func NewJSONLoader() *Loader {
 				Data:       val,
 				Replaced:   repMap,
 			}
-			return encoder.Encode(data)
+			if err := encoder.Encode(data); err != nil {
+				return errors.WithMessage(err, "on json encode")
+			}
+			return nil
 		},
 		Decode: func(r io.Reader, val interface{}, repMap map[string]interface{}) error {
 			decoder := json.NewDecoder(r)
 			var data loadData
 			if err := decoder.Decode(&data); err != nil {
-				return err
+				return errors.WithMessage(err, "on json decode")
 			}
 			if err := json.Unmarshal(data.Data, val); err != nil {
-				return err
+				return errors.WithMessage(err, "on unmarshal raw message")
 			}
 			if repMap == nil {
 				return nil
 			}
 			_, err := replace.ByMap(val, repMap)
+			if err != nil {
+				return errors.WithMessage(err, "on replace data by map")
+			}
 			return err
 		},
 	}
