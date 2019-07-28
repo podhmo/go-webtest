@@ -93,7 +93,7 @@ func NewJSONLoader() *Loader {
 			if repMap == nil {
 				return nil
 			}
-			_, err := replace.ByMap(data.Data, repMap)
+			_, err := replace.ByMap(val, repMap)
 			return err
 		},
 	}
