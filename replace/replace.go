@@ -1,11 +1,15 @@
 package replace
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pkg/errors"
 	"github.com/xeipuuv/gojsonpointer"
 )
+
+// ErrUnsupportedType :
+var ErrUnsupportedType = fmt.Errorf("unsupported type")
 
 func coerce(v interface{}) (interface{}, error) {
 	switch v := v.(type) {
@@ -29,7 +33,7 @@ func coerce(v interface{}) (interface{}, error) {
 		}
 		return *v, nil
 	default:
-		return nil, errors.Errorf("unsupported type, only map[string]interface{} and []interface{}. this is %T", v)
+		return nil, errors.WithMessagef(ErrUnsupportedType, "only map[string]interface{} and []interface{}. this is %T", v)
 	}
 }
 
