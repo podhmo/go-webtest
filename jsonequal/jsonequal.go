@@ -65,6 +65,14 @@ func FromReader(reader io.Reader) func() (interface{}, []byte, error) {
 	}
 }
 
+// FromReadCloser :
+func FromReadCloser(reader io.ReadCloser) func() (interface{}, []byte, error) {
+	return func() (interface{}, []byte, error) {
+		defer reader.Close()
+		return FromReader(reader)()
+	}
+}
+
 // FromBytes :
 func FromBytes(b []byte) func() (interface{}, []byte, error) {
 	return func() (interface{}, []byte, error) {
