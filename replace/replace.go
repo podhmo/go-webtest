@@ -7,8 +7,38 @@ import (
 	"github.com/xeipuuv/gojsonpointer"
 )
 
+func coerce(v interface{}) (interface{}, error) {
+	switch v := v.(type) {
+	case map[string]interface{}:
+		return v, nil
+	case []interface{}:
+		return v, nil
+	case *[]interface{}:
+		if v == nil {
+			return []interface{}{}, nil
+		}
+		return *v, nil
+	case *map[string]interface{}:
+		if v == nil {
+			return map[string]interface{}{}, nil
+		}
+		return *v, nil
+	case *interface{}:
+		if v == nil {
+			return map[string]interface{}{}, nil // xxx:
+		}
+		return *v, nil
+	default:
+		return nil, errors.Errorf("unsupported type, only map[string]interface{} and []interface{}. this is %T", v)
+	}
+}
+
 // ByMap replace data by map
 func ByMap(data interface{}, refMap map[string]interface{}) (interface{}, error) {
+	data, err := coerce(data)
+	if err != nil {
+		return nil, err
+	}
 	for k, v := range refMap {
 		jptr, err := gojsonpointer.NewJsonPointer(strings.TrimPrefix(k, "#"))
 		if err != nil {
@@ -23,6 +53,10 @@ func ByMap(data interface{}, refMap map[string]interface{}) (interface{}, error)
 
 // ByPalette replace data by reference array and palette
 func ByPalette(data interface{}, refs []string, palette interface{}) (interface{}, error) {
+	data, err := coerce(data)
+	if err != nil {
+		return nil, err
+	}
 	for _, k := range refs {
 		jptr, err := gojsonpointer.NewJsonPointer(strings.TrimPrefix(k, "#"))
 		if err != nil {
