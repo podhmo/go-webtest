@@ -30,7 +30,9 @@ func NewTestdataRecorder(loader *Loader) *Recorder {
 
 // Config :
 type Config struct {
-	Recorder  *Recorder
+	Recorder   *Recorder
+	ReplaceMap map[string]interface{}
+
 	Overwrite bool
 	self      string
 }
@@ -45,14 +47,14 @@ func (c *Config) Run(
 	existed := r.Exists(fpath)
 	if !existed || c.Overwrite || c.self == fpath || c.self == filepath.Base(fpath) {
 		t.Logf("save testdata: %q", fpath)
-		if err := r.Loader.Save(fpath, got); err != nil {
+		if err := r.Loader.Save(fpath, got, c.ReplaceMap); err != nil {
 			t.Fatalf("record: %s", err)
 		}
 	}
 	t.Logf("load testdata: %q", fpath)
 
 	var want interface{}
-	if err := r.Loader.Load(fpath, &want); err != nil {
+	if err := r.Loader.Load(fpath, &want, c.ReplaceMap); err != nil {
 		t.Fatalf("replay: %s", err)
 	}
 	return want
@@ -108,5 +110,12 @@ func WithUpdateByEnvvar(s string) func(*Config) {
 			return
 		}
 		c.self = v
+	}
+}
+
+// WithReplaceMap replace data when loading stored data
+func WithReplaceMap(repMap map[string]interface{}) func(*Config) {
+	return func(c *Config) {
+		c.ReplaceMap = repMap
 	}
 }
