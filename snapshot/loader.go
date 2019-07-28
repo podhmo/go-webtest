@@ -57,13 +57,13 @@ func (r *Loader) Load(fpath string, want interface{}, repMap map[string]interfac
 
 type saveData struct {
 	ModifiedAt time.Time              `json:"modifiedAt"`
-	ReplaceMap map[string]interface{} `json:"replaceMap,omitempty"`
+	Replaced   map[string]interface{} `json:"replaced,omitempty"`
 	Data       interface{}            `json:"data"`
 }
 
 type loadData struct {
 	ModifiedAt time.Time              `json:"modifiedAt"`
-	ReplaceMap map[string]interface{} `json:"replaceMap,omitempty"`
+	Replaced   map[string]interface{} `json:"replaced,omitempty"`
 	Data       json.RawMessage        `json:"data"`
 }
 
@@ -77,7 +77,7 @@ func NewJSONLoader() *Loader {
 			data := &saveData{
 				ModifiedAt: time.Now(),
 				Data:       val,
-				ReplaceMap: repMap,
+				Replaced:   repMap,
 			}
 			return encoder.Encode(data)
 		},
