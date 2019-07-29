@@ -37,16 +37,16 @@ func TestWithMetadata(t *testing.T) {
 		}
 		defer f.Close()
 		decoder := json.NewDecoder(f)
-		storedData := map[string]interface{}{}
+		storedData := loadData{}
 		if err := decoder.Decode(&storedData); err != nil {
 			t.Fatal(err)
 		}
-		if _, exists := storedData["metadata"]; !exists {
+		if storedData.Metadata == nil {
 			t.Fatal("metadata must be existed")
 		}
 
-		if !reflect.DeepEqual(normalize(metadata), normalize(storedData["metadata"])) {
-			t.Errorf("metadata, want %v, but %v", metadata, storedData["metadata"])
+		if !reflect.DeepEqual(normalize(metadata), normalize(storedData.Metadata)) {
+			t.Errorf("metadata, want %v, but %v", metadata, storedData.Metadata)
 		}
 	}
 }
