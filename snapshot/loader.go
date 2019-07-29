@@ -13,7 +13,8 @@ import (
 
 // Extra is extra data
 type Extra struct {
-	ReplaceMap map[string]interface{}
+	ReplaceMap map[string]interface{} // data replacement setting, on loading
+	Metadata   map[string]interface{}
 }
 
 // Loader :
@@ -62,12 +63,14 @@ func (r *Loader) Load(fpath string, want interface{}, extra *Extra) (err error) 
 type saveData struct {
 	ModifiedAt time.Time              `json:"modifiedAt"`
 	Replaced   map[string]interface{} `json:"replaced,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 	Data       interface{}            `json:"data"`
 }
 
 type loadData struct {
 	ModifiedAt time.Time              `json:"modifiedAt"`
 	Replaced   map[string]interface{} `json:"replaced,omitempty"`
+	Metadata   map[string]interface{} `json:"metadata,omitempty"`
 	Data       json.RawMessage        `json:"data"`
 }
 
@@ -82,6 +85,7 @@ func NewJSONLoader() *Loader {
 				ModifiedAt: time.Now(),
 				Data:       val,
 				Replaced:   extra.ReplaceMap,
+				Metadata:   extra.Metadata,
 			}
 			if err := encoder.Encode(data); err != nil {
 				return errors.WithMessage(err, "on json encode")

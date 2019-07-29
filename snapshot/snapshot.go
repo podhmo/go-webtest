@@ -129,3 +129,10 @@ func WithReplaceMapNormalized(repMap map[string]interface{}) func(*Config) {
 		c.Extra.ReplaceMap = jsonequal.MustNormalize(repMap).(map[string]interface{})
 	}
 }
+
+// WithMetadata :
+func WithMetadata(metadata map[string]interface{}) func(*Config) {
+	return func(c *Config) {
+		c.Extra.Metadata = metadata
+	}
+}
