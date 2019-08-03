@@ -1,13 +1,13 @@
 package httpbin_test
 
 import (
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"testing"
 
 	"github.com/podhmo/go-webtest/httpbin/httpbintest"
+	"github.com/podhmo/go-webtest/jsonequal"
 	"github.com/podhmo/noerror"
 )
 
@@ -23,16 +23,13 @@ func TestIt(t *testing.T) {
 			"response: ", "<todo>", // add more contextual information?
 		)
 
-		data := map[string]interface{}{}
-		decoder := json.NewDecoder(res.Body)
-		noerror.Must(t,
-			decoder.Decode(&data),
-			"response: ", "<todo>",
-		)
-		defer res.Body.Close()
-
 		// todo: assertion response
-		fmt.Printf("body: %#+v", data)
+		noerror.Should(t,
+			jsonequal.ShouldBeSame(
+				jsonequal.FromReadCloser(res.Body),
+				jsonequal.FromString(`{"message": "OK", "status": 200}`),
+			),
+		)
 
 		// todo: assertion db check
 	})
@@ -52,16 +49,13 @@ func TestUnit(t *testing.T) {
 			"response: ", "<todo>",
 		)
 
-		data := map[string]interface{}{}
-		decoder := json.NewDecoder(res.Body)
-		noerror.Must(t,
-			decoder.Decode(&data),
-			"response: ", "<todo>",
-		)
-		defer res.Body.Close()
-
 		// todo: assertion response
-		fmt.Printf("body: %#+v", data)
+		noerror.Should(t,
+			jsonequal.ShouldBeSame(
+				jsonequal.FromReadCloser(res.Body),
+				jsonequal.FromString(`{"message": "OK", "status": 200}`),
+			),
+		)
 
 		// todo: assertion db check
 	})
