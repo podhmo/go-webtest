@@ -8,13 +8,15 @@ import (
 	"strings"
 
 	"github.com/podhmo/go-webtest/client"
-	"github.com/podhmo/go-webtest/client/response"
 )
+
+// Response :
+type Response = client.Response
 
 // Internal :
 type Internal interface {
-	Do(req *http.Request) (response.Response, error, func())
-	Request(method string, path string, body io.Reader, options ...func(*http.Request)) (response.Response, error, func())
+	Do(req *http.Request) (Response, error, func())
+	Request(method string, path string, body io.Reader, options ...func(*http.Request)) (Response, error, func())
 }
 
 // Client :
@@ -23,17 +25,17 @@ type Client struct {
 }
 
 // Do :
-func (c *Client) Do(req *http.Request) (response.Response, error, func()) {
+func (c *Client) Do(req *http.Request) (Response, error, func()) {
 	return c.Internal.Do(req)
 }
 
 // Get :
-func (c *Client) Get(path string) (response.Response, error, func()) {
+func (c *Client) Get(path string) (Response, error, func()) {
 	return c.Internal.Request("GET", path, nil)
 }
 
 // Head :
-func (c *Client) Head(path string) (response.Response, error, func()) {
+func (c *Client) Head(path string) (Response, error, func()) {
 	return c.Internal.Request("HEAD", path, nil)
 }
 
@@ -41,7 +43,7 @@ func (c *Client) Head(path string) (response.Response, error, func()) {
 func (c *Client) Post(
 	path, contentType string,
 	body io.Reader,
-) (response.Response, error, func()) {
+) (Response, error, func()) {
 	return c.Internal.Request("POST", path, body, func(req *http.Request) {
 		req.Header.Set("Content-Type", contentType)
 	})
@@ -51,7 +53,7 @@ func (c *Client) Post(
 func (c *Client) PostForm(
 	path string,
 	data url.Values,
-) (response.Response, error, func()) {
+) (Response, error, func()) {
 	return c.Post(
 		path,
 		"application/x-www-form-urlencoded",
@@ -63,12 +65,9 @@ func (c *Client) PostForm(
 func (c *Client) PostJSON(
 	path string,
 	body io.Reader,
-) (response.Response, error, func()) {
+) (Response, error, func()) {
 	return c.Post(path, "application/json", body)
 }
-
-// Response :
-type Response = response.Response
 
 // NewClientFromTestServer :
 func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Client {

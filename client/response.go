@@ -1,4 +1,4 @@
-package response
+package client
 
 import (
 	"fmt"

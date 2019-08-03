@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"sync"
 
-	"github.com/podhmo/go-webtest/client/response"
 	"github.com/podhmo/go-webtest/internal"
 )
 
@@ -18,13 +17,13 @@ type HTTPTestServerClient struct {
 }
 
 // Do :
-func (c *HTTPTestServerClient) Do(req *http.Request) (response.Response, error, func()) {
+func (c *HTTPTestServerClient) Do(req *http.Request) (Response, error, func()) {
 	client := c.client
 	if c.client == nil {
 		client = http.DefaultClient
 	}
 
-	var adapter *response.Adapter
+	var adapter *ResponseAdapter
 	var raw *http.Response
 	var once sync.Once
 
@@ -33,7 +32,7 @@ func (c *HTTPTestServerClient) Do(req *http.Request) (response.Response, error, 
 		return nil, err, nil
 	}
 
-	adapter = response.NewAdapter(
+	adapter = NewResponseAdapter(
 		func() *http.Response {
 			once.Do(func() {
 				adapter.AddTeardown(raw.Body.Close)
@@ -50,7 +49,7 @@ func (c *HTTPTestServerClient) Request(
 	path string,
 	body io.Reader,
 	options ...func(*http.Request),
-) (response.Response, error, func()) {
+) (Response, error, func()) {
 	url := internal.URLJoin(c.Server.URL, internal.URLJoin(c.BasePath, path))
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {

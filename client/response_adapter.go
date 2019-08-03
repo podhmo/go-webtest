@@ -1,4 +1,4 @@
-package response
+package client
 
 import (
 	"bytes"
@@ -11,15 +11,15 @@ import (
 	"github.com/podhmo/go-webtest/internal"
 )
 
-// NewAdapter :
-func NewAdapter(get func() *http.Response) *Adapter {
-	return &Adapter{
+// NewResponseAdapter :
+func NewResponseAdapter(get func() *http.Response) *ResponseAdapter {
+	return &ResponseAdapter{
 		GetResponse: get,
 	}
 }
 
-// Adapter :
-type Adapter struct {
+// ResponseAdapter :
+type ResponseAdapter struct {
 	GetResponse func() *http.Response
 
 	bytes []byte // not bet
@@ -30,12 +30,12 @@ type Adapter struct {
 }
 
 // Response :
-func (res *Adapter) Response() *http.Response {
+func (res *ResponseAdapter) Response() *http.Response {
 	return res.GetResponse()
 }
 
 // Close :
-func (res *Adapter) Close() {
+func (res *ResponseAdapter) Close() {
 	res.m.Lock()
 	defer res.m.Unlock()
 	for _, teardown := range res.teardowns {
@@ -46,14 +46,14 @@ func (res *Adapter) Close() {
 	res.teardowns = nil
 }
 
-func (res *Adapter) AddTeardown(fn func() error) {
+func (res *ResponseAdapter) AddTeardown(fn func() error) {
 	res.m.Lock()
 	defer res.m.Unlock()
 	res.teardowns = append(res.teardowns, fn)
 }
 
 // Buffer : (TODO: rename)
-func (res *Adapter) Buffer() *bytes.Buffer {
+func (res *ResponseAdapter) Buffer() *bytes.Buffer {
 	res.bOnce.Do(func() {
 		var b bytes.Buffer
 		if _, err := io.Copy(&b, res.Response().Body); err != nil {
@@ -65,18 +65,18 @@ func (res *Adapter) Buffer() *bytes.Buffer {
 }
 
 // StatusCode :
-func (res *Adapter) StatusCode() int {
+func (res *ResponseAdapter) StatusCode() int {
 	return res.Response().StatusCode
 }
 
 // ParseJSONData :
-func (res *Adapter) ParseJSONData(val interface{}) error {
+func (res *ResponseAdapter) ParseJSONData(val interface{}) error {
 	decoder := json.NewDecoder(res.Buffer()) // TODO: decoder interface
 	return decoder.Decode(val)
 }
 
 // JSONData :
-func (res *Adapter) JSONData() interface{} {
+func (res *ResponseAdapter) JSONData() interface{} {
 	var val interface{}
 	if err := res.ParseJSONData(&val); err != nil {
 		panic(err) // xxx:
@@ -85,12 +85,12 @@ func (res *Adapter) JSONData() interface{} {
 }
 
 // Body :
-func (res *Adapter) Body() []byte {
+func (res *ResponseAdapter) Body() []byte {
 	return res.Buffer().Bytes()
 }
 
 // LazyBodyString :
-func (res *Adapter) LazyBodyString() fmt.Stringer {
+func (res *ResponseAdapter) LazyBodyString() fmt.Stringer {
 	return internal.NewLazyString(
 		func() string {
 			return res.Buffer().String()
