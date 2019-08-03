@@ -19,6 +19,14 @@ type Internal interface {
 	NewRequest(method string, path string, body io.Reader) (*http.Request, error)
 }
 
+// todo: rename
+
+// Middleware :
+type Middleware = func(
+	req *http.Request,
+	inner func(*http.Request) (Response, error, func()),
+) (Response, error, func())
+
 // Client :
 type Client struct {
 	Internal Internal
@@ -48,17 +56,39 @@ func (c *Client) Do(
 	if err != nil {
 		return nil, err, nil
 	}
-	return c.DoFromRequest(req)
+	return c.do(req, config)
 }
 
 // DoFromRequest :
 func (c *Client) DoFromRequest(
 	req *http.Request,
+	options ...func(*Config),
 ) (Response, error, func()) {
-	for _, modify := range c.Config.RequestModifiers {
+	config := c.Config.Copy()
+	for _, opt := range options {
+		opt(config)
+	}
+	return c.do(req, config)
+}
+
+// DoFromRequest :
+func (c *Client) do(
+	req *http.Request,
+	config *Config,
+) (Response, error, func()) {
+	for _, modify := range config.RequestModifiers {
 		modify(req)
 	}
-	return c.Internal.DoFromRequest(req)
+
+	doRequet := c.Internal.DoFromRequest
+	for i := range config.Middlewares {
+		middleware := config.Middlewares[i]
+		inner := doRequet
+		doRequet = func(req *http.Request) (Response, error, func()) {
+			return middleware(req, inner)
+		}
+	}
+	return doRequet(req)
 }
 
 // NewClientFromTestServer :
@@ -97,6 +127,7 @@ type Config struct {
 
 	Method           string
 	RequestModifiers []func(*http.Request)
+	Middlewares      []Middleware // todo: rename
 
 	body io.Reader // only once
 }
@@ -115,6 +146,10 @@ func (c *Config) Copy() *Config {
 		RequestModifiers: append(
 			make([]func(*http.Request), 0, len(c.RequestModifiers)),
 			c.RequestModifiers...,
+		),
+		Middlewares: append(
+			make([]Middleware, 0, len(c.Middlewares)),
+			c.Middlewares...,
 		),
 	}
 }
@@ -152,9 +187,16 @@ func WithJSON(body io.Reader) func(*Config) {
 	}
 }
 
-// AddModifyRequest :
-func AddModifyRequest(modify func(*http.Request)) func(*Config) {
+// WithModifyRequest :
+func WithModifyRequest(modify func(*http.Request)) func(*Config) {
 	return func(c *Config) {
 		c.RequestModifiers = append(c.RequestModifiers, modify)
+	}
+}
+
+// WithMiddleware :
+func WithMiddleware(middleware Middleware) func(*Config) {
+	return func(c *Config) {
+		c.Middlewares = append(c.Middlewares, middleware)
 	}
 }
