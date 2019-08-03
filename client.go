@@ -5,32 +5,78 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 
 	"github.com/podhmo/go-webtest/client"
 	"github.com/podhmo/go-webtest/client/response"
 )
 
+// Internal :
+type Internal interface {
+	Do(req *http.Request) (response.Response, error, func())
+	Request(method string, path string, body io.Reader, options ...func(*http.Request)) (response.Response, error, func())
+}
+
 // Client :
-type Client interface {
-	Do(req *http.Request) (Response, error, func())
-	Get(path string) (Response, error, func())
-	Head(path string) (Response, error, func())
-	Post(path, contentType string, body io.Reader) (Response, error, func())
-	PostJSON(path string, body io.Reader) (Response, error, func())
-	PostForm(path string, data url.Values) (Response, error, func())
-	// todo: setting by functional options?
+type Client struct {
+	Internal Internal
+}
+
+// Do :
+func (c *Client) Do(req *http.Request) (response.Response, error, func()) {
+	return c.Internal.Do(req)
+}
+
+// Get :
+func (c *Client) Get(path string) (response.Response, error, func()) {
+	return c.Internal.Request("GET", path, nil)
+}
+
+// Head :
+func (c *Client) Head(path string) (response.Response, error, func()) {
+	return c.Internal.Request("HEAD", path, nil)
+}
+
+// Post :
+func (c *Client) Post(
+	path, contentType string,
+	body io.Reader,
+) (response.Response, error, func()) {
+	return c.Internal.Request("POST", path, body, func(req *http.Request) {
+		req.Header.Set("Content-Type", contentType)
+	})
+}
+
+// PostForm :
+func (c *Client) PostForm(
+	path string,
+	data url.Values,
+) (response.Response, error, func()) {
+	return c.Post(
+		path,
+		"application/x-www-form-urlencoded",
+		strings.NewReader(data.Encode()),
+	)
+}
+
+// PostJSON :
+func (c *Client) PostJSON(
+	path string,
+	body io.Reader,
+) (response.Response, error, func()) {
+	return c.Post(path, "application/json", body)
 }
 
 // Response :
 type Response = response.Response
 
 // NewClientFromTestServer :
-func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) Client {
+func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Client {
 	c := &Config{}
 	for _, opt := range options {
 		opt(c)
 	}
-	return &client.Adapter{
+	return &Client{
 		Internal: &client.HTTPTestServerClient{
 			Server:   ts,
 			BasePath: c.BasePath,
@@ -39,12 +85,12 @@ func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) Clie
 }
 
 // NewClientFromHandler :
-func NewClientFromHandler(handlerFunc http.HandlerFunc, options ...func(*Config)) Client {
+func NewClientFromHandler(handlerFunc http.HandlerFunc, options ...func(*Config)) *Client {
 	c := &Config{}
 	for _, opt := range options {
 		opt(c)
 	}
-	return &client.Adapter{
+	return &Client{
 		Internal: &client.HTTPTestResponseRecorderClient{
 			HandlerFunc: handlerFunc,
 			BasePath:    c.BasePath,
