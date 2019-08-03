@@ -10,8 +10,8 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/podhmo/go-rfc3339 v0.0.0-20190727145742-e821cd8c86bb h1:+dOix2jpUs8eaQII8nWGFVjot7PUZxKez7PPOiluPDU=
 github.com/podhmo/go-rfc3339 v0.0.0-20190727145742-e821cd8c86bb/go.mod h1:5PYkvjhiNW8FGe6R79OkEz+sjbGrZATFkKnlYrd37Yg=
-github.com/podhmo/noerror v0.0.0-20190802222420-29b2190da710 h1:U1XJL0BTcknZ6zufk/75jOHhJ1ifTe8QAa9rtsCR9oo=
-github.com/podhmo/noerror v0.0.0-20190802222420-29b2190da710/go.mod h1:Cvb4ZKdIo4pLuGL8CrHihkDODevHdjnA4LdnltJtTew=
+github.com/podhmo/noerror v0.2.0 h1:xrfLTcQenO8JrNEdfEv2NkzRERx5mWdYmO0+GMZXCrE=
+github.com/podhmo/noerror v0.2.0/go.mod h1:Cvb4ZKdIo4pLuGL8CrHihkDODevHdjnA4LdnltJtTew=
 github.com/sergi/go-diff v1.0.0 h1:Kpca3qRNrduNnOQeazBd0ysaKrUJiIuISHxogkT9RPQ=
 github.com/sergi/go-diff v1.0.0/go.mod h1:0CfEIISq7TuYL3j771MWULgwwjU+GofnZX9QAmXWZgo=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
