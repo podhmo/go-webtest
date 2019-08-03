@@ -22,7 +22,7 @@ type Response interface {
 	Extractor
 }
 
-// Extractor : (tentative: this is internal)
+// Extractor :
 type Extractor interface {
 	ParseData(val interface{}) error
 	Data() interface{}
@@ -43,8 +43,8 @@ func NewClientForServer(ts *httptest.Server, options ...func(*Config)) Client {
 	}
 }
 
-// NewClientForRecorder :
-func NewClientForRecorder(handlerFunc http.HandlerFunc, options ...func(*Config)) Client {
+// NewClientForHandler :
+func NewClientForHandler(handlerFunc http.HandlerFunc, options ...func(*Config)) Client {
 	c := &Config{}
 	for _, opt := range options {
 		opt(c)

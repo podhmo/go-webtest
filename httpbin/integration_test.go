@@ -36,7 +36,7 @@ func TestIt(t *testing.T) {
 
 func TestUnit(t *testing.T) {
 	handler := httpbintest.NewTestHandler()
-	client := webtest.NewClientForRecorder(handler)
+	client := webtest.NewClientForHandler(handler)
 
 	t.Run("200", func(t *testing.T) {
 		got, err, teardown := client.Get("/status/200")
