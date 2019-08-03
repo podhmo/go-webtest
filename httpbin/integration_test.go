@@ -1,11 +1,9 @@
 package httpbin_test
 
 import (
-	"fmt"
-	"net/http"
-	"net/http/httptest"
 	"testing"
 
+	webtest "github.com/podhmo/go-webtest"
 	"github.com/podhmo/go-webtest/httpbin/httpbintest"
 	"github.com/podhmo/go-webtest/jsonequal"
 	"github.com/podhmo/noerror"
@@ -14,19 +12,20 @@ import (
 func TestIt(t *testing.T) {
 	ts, teardown := httpbintest.NewTestAPIServer()
 	defer teardown()
+	client := webtest.NewClientForServer(ts)
 
 	t.Run("200", func(t *testing.T) {
-		res, err := http.Get(fmt.Sprintf("%s/status/200", ts.URL))
-
+		got, err, teardown := client.Get("/status/200")
 		noerror.Must(t,
-			noerror.Equal(200).ActualWithError(res.StatusCode, err),
-			"response: ", "<todo>", // add more contextual information?
+			noerror.Equal(200).ActualWithError(got.StatusCode(), err),
+			"response: ", got.LazyBodyString(), // add more contextual information?
 		)
+		defer teardown()
 
 		// todo: assertion response
 		noerror.Should(t,
 			jsonequal.ShouldBeSame(
-				jsonequal.FromReadCloser(res.Body),
+				jsonequal.FromRawWithBytes(got.Data(), got.Body()),
 				jsonequal.FromString(`{"message": "OK", "status": 200}`),
 			),
 		)
@@ -37,22 +36,20 @@ func TestIt(t *testing.T) {
 
 func TestUnit(t *testing.T) {
 	handler := httpbintest.NewTestHandler()
+	client := webtest.NewClientForRecorder(handler)
 
 	t.Run("200", func(t *testing.T) {
-		w := httptest.NewRecorder()
-		req := httptest.NewRequest("GET", "/status/200", nil)
-		handler(w, req)
-		res := w.Result()
-
+		got, err, teardown := client.Get("/status/200")
 		noerror.Must(t,
-			noerror.Equal(200).Actual(res.StatusCode),
-			"response: ", "<todo>",
+			noerror.Equal(200).ActualWithError(got.StatusCode(), err),
+			"response: ", got.LazyBodyString(), // add more contextual information?
 		)
+		defer teardown()
 
 		// todo: assertion response
 		noerror.Should(t,
 			jsonequal.ShouldBeSame(
-				jsonequal.FromReadCloser(res.Body),
+				jsonequal.FromRawWithBytes(got.Data(), got.Body()),
 				jsonequal.FromString(`{"message": "OK", "status": 200}`),
 			),
 		)
