@@ -15,85 +15,107 @@ type Response = client.Response
 
 // Internal :
 type Internal interface {
-	Do(req *http.Request) (Response, error, func())
-	Request(method string, path string, body io.Reader, options ...func(*http.Request)) (Response, error, func())
+	DoFromRequest(req *http.Request) (Response, error, func())
+	NewRequest(method string, path string, body io.Reader) (*http.Request, error)
 }
 
 // Client :
 type Client struct {
 	Internal Internal
+	Config   *Config
+}
+
+// Copy :
+func (c *Client) Copy() *Client {
+	return &Client{
+		Internal: c.Internal,
+		Config:   c.Config.Copy(),
+	}
 }
 
 // Do :
-func (c *Client) Do(req *http.Request) (Response, error, func()) {
-	return c.Internal.Do(req)
-}
-
-// Get :
-func (c *Client) Get(path string) (Response, error, func()) {
-	return c.Internal.Request("GET", path, nil)
-}
-
-// Head :
-func (c *Client) Head(path string) (Response, error, func()) {
-	return c.Internal.Request("HEAD", path, nil)
-}
-
-// Post :
-func (c *Client) Post(
-	path, contentType string,
-	body io.Reader,
-) (Response, error, func()) {
-	return c.Internal.Request("POST", path, body, func(req *http.Request) {
-		req.Header.Set("Content-Type", contentType)
-	})
-}
-
-// PostForm :
-func (c *Client) PostForm(
+func (c *Client) Do(
 	path string,
-	data url.Values,
+	options ...func(*Config),
 ) (Response, error, func()) {
-	return c.Post(
-		path,
-		"application/x-www-form-urlencoded",
-		strings.NewReader(data.Encode()),
-	)
+	config := c.Config.Copy()
+	for _, opt := range options {
+		opt(config)
+	}
+	method := config.Method
+	body := config.body
+	req, err := c.Internal.NewRequest(method, path, body)
+	if err != nil {
+		return nil, err, nil
+	}
+	return c.DoFromRequest(req)
 }
 
-// PostJSON :
-func (c *Client) PostJSON(
-	path string,
-	body io.Reader,
+// DoFromRequest :
+func (c *Client) DoFromRequest(
+	req *http.Request,
 ) (Response, error, func()) {
-	return c.Post(path, "application/json", body)
+	for _, modify := range c.Config.RequestModifiers {
+		modify(req)
+	}
+	return c.Internal.DoFromRequest(req)
 }
 
 // NewClientFromTestServer :
 func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Client {
-	c := &Config{}
+	config := NewConfig()
 	for _, opt := range options {
-		opt(c)
+		opt(config)
 	}
 	return &Client{
 		Internal: &client.HTTPTestServerClient{
 			Server:   ts,
-			BasePath: c.BasePath,
+			BasePath: config.BasePath,
 		},
+		Config: config,
 	}
 }
 
 // NewClientFromHandler :
 func NewClientFromHandler(handlerFunc http.HandlerFunc, options ...func(*Config)) *Client {
-	c := &Config{}
+	config := NewConfig()
 	for _, opt := range options {
-		opt(c)
+		opt(config)
 	}
 	return &Client{
 		Internal: &client.HTTPTestResponseRecorderClient{
 			HandlerFunc: handlerFunc,
-			BasePath:    c.BasePath,
+			BasePath:    config.BasePath,
 		},
+		Config: config,
+	}
+}
+
+// Config :
+type Config struct {
+	BasePath string
+
+	Method           string
+	RequestModifiers []func(*http.Request)
+
+	body io.Reader // only once
+}
+
+// NewConfig :
+func NewConfig() *Config {
+	return &Config{
+		Method: "GET",
+	}
+}
+
+// Config :
+func (c *Config) Copy() *Config {
+	return &Config{
+		BasePath: c.BasePath,
+		RequestModifiers: append(
+			make([]func(*http.Request), 0, len(c.RequestModifiers)),
+			c.RequestModifiers...,
+		),
 	}
 }
 
@@ -104,7 +126,35 @@ func WithBasePath(basePath string) func(*Config) {
 	}
 }
 
-// Config :
-type Config struct {
-	BasePath string
+// WithForm :
+func WithForm(data url.Values) func(*Config) {
+	return func(c *Config) {
+		if c.body != nil {
+			panic("body is already set, enable to set body only once") // xxx
+		}
+		c.body = strings.NewReader(data.Encode())
+		c.RequestModifiers = append(c.RequestModifiers, func(req *http.Request) {
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		})
+	}
+}
+
+// WithJSON :
+func WithJSON(body io.Reader) func(*Config) {
+	return func(c *Config) {
+		if c.body != nil {
+			panic("body is already set, enable to set body only once") // xxx
+		}
+		c.body = body
+		c.RequestModifiers = append(c.RequestModifiers, func(req *http.Request) {
+			req.Header.Set("Content-Type", "application/json")
+		})
+	}
+}
+
+// AddModifyRequest :
+func AddModifyRequest(modify func(*http.Request)) func(*Config) {
+	return func(c *Config) {
+		c.RequestModifiers = append(c.RequestModifiers, modify)
+	}
 }

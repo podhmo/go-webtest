@@ -16,7 +16,7 @@ type HTTPTestResponseRecorderClient struct {
 }
 
 // Do :
-func (c *HTTPTestResponseRecorderClient) Do(
+func (c *HTTPTestResponseRecorderClient) DoFromRequest(
 	req *http.Request,
 ) (Response, error, func()) {
 	var adapter *ResponseAdapter
@@ -38,17 +38,12 @@ func (c *HTTPTestResponseRecorderClient) Do(
 	return adapter, nil, adapter.Close
 }
 
-// Request :
-func (c *HTTPTestResponseRecorderClient) Request(
+// NewRequest :
+func (c *HTTPTestResponseRecorderClient) NewRequest(
 	method string,
 	path string,
 	body io.Reader,
-	options ...func(*http.Request),
-) (Response, error, func()) {
+) (*http.Request, error) {
 	url := internal.URLJoin(c.BasePath, path)
-	req := httptest.NewRequest(method, url, body)
-	for _, opt := range options {
-		opt(req)
-	}
-	return c.Do(req)
+	return httptest.NewRequest(method, url, body), nil
 }
