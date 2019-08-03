@@ -49,11 +49,15 @@ func (c *HTTPTestServerClient) Request(
 	method string,
 	path string,
 	body io.Reader,
+	options ...func(*http.Request),
 ) (response.Response, error, func()) {
 	url := internal.URLJoin(c.Server.URL, internal.URLJoin(c.BasePath, path))
 	req, err := http.NewRequest(method, url, body)
 	if err != nil {
 		return nil, err, nil
+	}
+	for _, opt := range options {
+		opt(req)
 	}
 	return c.Do(req)
 }

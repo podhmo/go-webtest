@@ -44,8 +44,12 @@ func (c *HTTPTestResponseRecorderClient) Request(
 	method string,
 	path string,
 	body io.Reader,
+	options ...func(*http.Request),
 ) (response.Response, error, func()) {
 	url := internal.URLJoin(c.BasePath, path)
 	req := httptest.NewRequest(method, url, body)
+	for _, opt := range options {
+		opt(req)
+	}
 	return c.Do(req)
 }
