@@ -31,8 +31,8 @@ type Extractor interface {
 	LazyBodyString() fmt.Stringer
 }
 
-// NewClientForServer :
-func NewClientForServer(ts *httptest.Server, options ...func(*Config)) Client {
+// NewClientFromTestServer :
+func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) Client {
 	c := &Config{}
 	for _, opt := range options {
 		opt(c)
@@ -43,8 +43,8 @@ func NewClientForServer(ts *httptest.Server, options ...func(*Config)) Client {
 	}
 }
 
-// NewClientForHandler :
-func NewClientForHandler(handlerFunc http.HandlerFunc, options ...func(*Config)) Client {
+// NewClientFromHandler :
+func NewClientFromHandler(handlerFunc http.HandlerFunc, options ...func(*Config)) Client {
 	c := &Config{}
 	for _, opt := range options {
 		opt(c)

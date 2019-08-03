@@ -12,7 +12,7 @@ import (
 func TestIt(t *testing.T) {
 	ts, teardown := httpbintest.NewTestAPIServer()
 	defer teardown()
-	client := webtest.NewClientForServer(ts)
+	client := webtest.NewClientFromTestServer(ts)
 
 	t.Run("200", func(t *testing.T) {
 		got, err, teardown := client.Get("/status/200")
@@ -36,7 +36,7 @@ func TestIt(t *testing.T) {
 
 func TestUnit(t *testing.T) {
 	handler := httpbintest.NewTestHandler()
-	client := webtest.NewClientForHandler(handler)
+	client := webtest.NewClientFromHandler(handler)
 
 	t.Run("200", func(t *testing.T) {
 		got, err, teardown := client.Get("/status/200")
