@@ -1,9 +1,11 @@
 package webtest
 
 import (
-	"fmt"
 	"net/http"
 	"net/http/httptest"
+
+	"github.com/podhmo/go-webtest/client"
+	"github.com/podhmo/go-webtest/client/response"
 )
 
 // Client :
@@ -13,23 +15,7 @@ type Client interface {
 }
 
 // Response :
-type Response interface {
-	Close()
-
-	Response() *http.Response
-	StatusCode() int
-
-	Extractor
-}
-
-// Extractor :
-type Extractor interface {
-	ParseJSONData(val interface{}) error
-	JSONData() interface{}
-
-	Body() []byte
-	LazyBodyString() fmt.Stringer
-}
+type Response = response.Response
 
 // NewClientFromTestServer :
 func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) Client {
@@ -37,7 +23,7 @@ func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) Clie
 	for _, opt := range options {
 		opt(c)
 	}
-	return &HTTPTestServerClient{
+	return &client.HTTPTestServerClient{
 		Server:   ts,
 		BasePath: c.BasePath,
 	}
@@ -49,7 +35,7 @@ func NewClientFromHandler(handlerFunc http.HandlerFunc, options ...func(*Config)
 	for _, opt := range options {
 		opt(c)
 	}
-	return &HTTPTestResponseRecorderClient{
+	return &client.HTTPTestResponseRecorderClient{
 		HandlerFunc: handlerFunc,
 		BasePath:    c.BasePath,
 	}

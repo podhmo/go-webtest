@@ -1,4 +1,4 @@
-package internal
+package response
 
 import (
 	"bytes"
@@ -7,17 +7,19 @@ import (
 	"io"
 	"net/http"
 	"sync"
+
+	"github.com/podhmo/go-webtest/internal"
 )
 
-// NewResponseAdapter :
-func NewResponseAdapter(get func() *http.Response) *ResponseAdapter {
-	return &ResponseAdapter{
+// NewAdapter :
+func NewAdapter(get func() *http.Response) *Adapter {
+	return &Adapter{
 		GetResponse: get,
 	}
 }
 
-// ResponseAdapter :
-type ResponseAdapter struct {
+// Adapter :
+type Adapter struct {
 	GetResponse func() *http.Response
 
 	bytes []byte // not bet
@@ -28,12 +30,12 @@ type ResponseAdapter struct {
 }
 
 // Response :
-func (res *ResponseAdapter) Response() *http.Response {
+func (res *Adapter) Response() *http.Response {
 	return res.GetResponse()
 }
 
 // Close :
-func (res *ResponseAdapter) Close() {
+func (res *Adapter) Close() {
 	res.m.Lock()
 	defer res.m.Unlock()
 	for _, teardown := range res.teardowns {
@@ -44,14 +46,14 @@ func (res *ResponseAdapter) Close() {
 	res.teardowns = nil
 }
 
-func (res *ResponseAdapter) AddTeardown(fn func() error) {
+func (res *Adapter) AddTeardown(fn func() error) {
 	res.m.Lock()
 	defer res.m.Unlock()
 	res.teardowns = append(res.teardowns, fn)
 }
 
 // Buffer : (TODO: rename)
-func (res *ResponseAdapter) Buffer() *bytes.Buffer {
+func (res *Adapter) Buffer() *bytes.Buffer {
 	res.bOnce.Do(func() {
 		var b bytes.Buffer
 		if _, err := io.Copy(&b, res.Response().Body); err != nil {
@@ -63,18 +65,18 @@ func (res *ResponseAdapter) Buffer() *bytes.Buffer {
 }
 
 // StatusCode :
-func (res *ResponseAdapter) StatusCode() int {
+func (res *Adapter) StatusCode() int {
 	return res.Response().StatusCode
 }
 
 // ParseJSONData :
-func (res *ResponseAdapter) ParseJSONData(val interface{}) error {
+func (res *Adapter) ParseJSONData(val interface{}) error {
 	decoder := json.NewDecoder(res.Buffer()) // TODO: decoder interface
 	return decoder.Decode(val)
 }
 
 // JSONData :
-func (res *ResponseAdapter) JSONData() interface{} {
+func (res *Adapter) JSONData() interface{} {
 	var val interface{}
 	if err := res.ParseJSONData(&val); err != nil {
 		panic(err) // xxx:
@@ -83,13 +85,13 @@ func (res *ResponseAdapter) JSONData() interface{} {
 }
 
 // Body :
-func (res *ResponseAdapter) Body() []byte {
+func (res *Adapter) Body() []byte {
 	return res.Buffer().Bytes()
 }
 
 // LazyBodyString :
-func (res *ResponseAdapter) LazyBodyString() fmt.Stringer {
-	return NewLazyString(
+func (res *Adapter) LazyBodyString() fmt.Stringer {
+	return internal.NewLazyString(
 		func() string {
 			return res.Buffer().String()
 		},
