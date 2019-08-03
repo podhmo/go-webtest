@@ -15,8 +15,8 @@ type Response = client.Response
 
 // Internal :
 type Internal interface {
-	Do(req *http.Request) (Response, error, func())
-	Request(method string, path string, body io.Reader, options ...func(*http.Request)) (Response, error, func())
+	DoFromRequest(req *http.Request) (Response, error, func())
+	NewRequest(method string, path string, body io.Reader) (*http.Request, error)
 }
 
 // Client :
@@ -44,11 +44,11 @@ func (c *Client) Do(
 	}
 	method := config.Method
 	body := config.body
-	return c.Internal.Request(method, path, body, func(req *http.Request) {
-		for _, modify := range config.RequestModifiers {
-			modify(req)
-		}
-	})
+	req, err := c.Internal.NewRequest(method, path, body)
+	if err != nil {
+		return nil, err, nil
+	}
+	return c.DoFromRequest(req)
 }
 
 // DoFromRequest :
@@ -58,7 +58,7 @@ func (c *Client) DoFromRequest(
 	for _, modify := range c.Config.RequestModifiers {
 		modify(req)
 	}
-	return c.Internal.Do(req)
+	return c.Internal.DoFromRequest(req)
 }
 
 // NewClientFromTestServer :

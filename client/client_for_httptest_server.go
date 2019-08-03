@@ -17,7 +17,7 @@ type HTTPTestServerClient struct {
 }
 
 // Do :
-func (c *HTTPTestServerClient) Do(req *http.Request) (Response, error, func()) {
+func (c *HTTPTestServerClient) DoFromRequest(req *http.Request) (Response, error, func()) {
 	client := c.client
 	if c.client == nil {
 		client = http.DefaultClient
@@ -43,20 +43,12 @@ func (c *HTTPTestServerClient) Do(req *http.Request) (Response, error, func()) {
 	return adapter, err, adapter.Close
 }
 
-// Request :
-func (c *HTTPTestServerClient) Request(
+// NewRequest :
+func (c *HTTPTestServerClient) NewRequest(
 	method string,
 	path string,
 	body io.Reader,
-	options ...func(*http.Request),
-) (Response, error, func()) {
+) (*http.Request, error) {
 	url := internal.URLJoin(c.Server.URL, internal.URLJoin(c.BasePath, path))
-	req, err := http.NewRequest(method, url, body)
-	if err != nil {
-		return nil, err, nil
-	}
-	for _, opt := range options {
-		opt(req)
-	}
-	return c.Do(req)
+	return http.NewRequest(method, url, body)
 }
