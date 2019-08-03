@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/podhmo/go-webtest/httpbin/httpbintest"
+	"github.com/podhmo/noerror"
 )
 
 func TestIt(t *testing.T) {
@@ -16,20 +17,18 @@ func TestIt(t *testing.T) {
 
 	t.Run("200", func(t *testing.T) {
 		res, err := http.Get(fmt.Sprintf("%s/status/200", ts.URL))
-		if err != nil {
-			t.Fatalf("%+v", err) // add more contextual information?
-		}
-		defer teardown()
 
-		if res.StatusCode != 200 {
-			t.Fatalf("status expect 200, but %d\n response: %s", res.StatusCode, "<todo>")
-		}
+		noerror.Must(t,
+			noerror.Equal(200).ActualWithError(res.StatusCode, err),
+			"response: ", "<todo>", // add more contextual information?
+		)
 
 		data := map[string]interface{}{}
 		decoder := json.NewDecoder(res.Body)
-		if err := decoder.Decode(&data); err != nil {
-			t.Fatalf("parse error %+v\n response:%s", err, "<todo>")
-		}
+		noerror.Must(t,
+			decoder.Decode(&data),
+			"response: ", "<todo>",
+		)
 		defer res.Body.Close()
 
 		// todo: assertion response
@@ -47,15 +46,18 @@ func TestUnit(t *testing.T) {
 		req := httptest.NewRequest("GET", "/status/200", nil)
 		handler(w, req)
 		res := w.Result()
-		if res.StatusCode != 200 {
-			t.Fatalf("status expect 200, but %d\n response: %s", res.StatusCode, "<todo>")
-		}
+
+		noerror.Must(t,
+			noerror.Equal(200).Actual(res.StatusCode),
+			"response: ", "<todo>",
+		)
 
 		data := map[string]interface{}{}
 		decoder := json.NewDecoder(res.Body)
-		if err := decoder.Decode(&data); err != nil {
-			t.Fatalf("parse error %+v\n response:%s", err, "<todo>")
-		}
+		noerror.Must(t,
+			decoder.Decode(&data),
+			"response: ", "<todo>",
+		)
 		defer res.Body.Close()
 
 		// todo: assertion response
