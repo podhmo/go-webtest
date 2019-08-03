@@ -25,8 +25,16 @@ type Client struct {
 	Config   *Config
 }
 
-// Requset :
-func (c *Client) Request(
+// Copy :
+func (c *Client) Copy() *Client {
+	return &Client{
+		Internal: c.Internal,
+		Config:   c.Config.Copy(),
+	}
+}
+
+// Do :
+func (c *Client) Do(
 	path string,
 	options ...func(*Config),
 ) (Response, error, func()) {
@@ -36,13 +44,20 @@ func (c *Client) Request(
 	}
 	method := config.Method
 	body := config.body
-	return c.Internal.Request(method, path, body)
+	return c.Internal.Request(method, path, body, func(req *http.Request) {
+		for _, modify := range config.RequestModifiers {
+			modify(req)
+		}
+	})
 }
 
-// Do :
-func (c *Client) Do(
+// DoFromRequest :
+func (c *Client) DoFromRequest(
 	req *http.Request,
 ) (Response, error, func()) {
+	for _, modify := range c.Config.RequestModifiers {
+		modify(req)
+	}
 	return c.Internal.Do(req)
 }
 
@@ -80,8 +95,8 @@ func NewClientFromHandler(handlerFunc http.HandlerFunc, options ...func(*Config)
 type Config struct {
 	BasePath string
 
-	Method          string
-	RequstModifiers []func(*http.Request)
+	Method           string
+	RequestModifiers []func(*http.Request)
 
 	body io.Reader // only once
 }
@@ -97,9 +112,9 @@ func NewConfig() *Config {
 func (c *Config) Copy() *Config {
 	return &Config{
 		BasePath: c.BasePath,
-		RequstModifiers: append(
-			make([]func(*http.Request), 0, len(c.RequstModifiers)),
-			c.RequstModifiers...,
+		RequestModifiers: append(
+			make([]func(*http.Request), 0, len(c.RequestModifiers)),
+			c.RequestModifiers...,
 		),
 	}
 }
@@ -118,7 +133,7 @@ func WithForm(data url.Values) func(*Config) {
 			panic("body is already set, enable to set body only once") // xxx
 		}
 		c.body = strings.NewReader(data.Encode())
-		c.RequstModifiers = append(c.RequstModifiers, func(req *http.Request) {
+		c.RequestModifiers = append(c.RequestModifiers, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		})
 	}
@@ -131,7 +146,7 @@ func WithJSON(body io.Reader) func(*Config) {
 			panic("body is already set, enable to set body only once") // xxx
 		}
 		c.body = body
-		c.RequstModifiers = append(c.RequstModifiers, func(req *http.Request) {
+		c.RequestModifiers = append(c.RequestModifiers, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/json")
 		})
 	}
@@ -140,6 +155,6 @@ func WithJSON(body io.Reader) func(*Config) {
 // AddModifyRequest :
 func AddModifyRequest(modify func(*http.Request)) func(*Config) {
 	return func(c *Config) {
-		c.RequstModifiers = append(c.RequstModifiers, modify)
+		c.RequestModifiers = append(c.RequestModifiers, modify)
 	}
 }
