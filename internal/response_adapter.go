@@ -67,16 +67,16 @@ func (res *ResponseAdapter) StatusCode() int {
 	return res.Response().StatusCode
 }
 
-// ParseData :
-func (res *ResponseAdapter) ParseData(val interface{}) error {
+// ParseJSONData :
+func (res *ResponseAdapter) ParseJSONData(val interface{}) error {
 	decoder := json.NewDecoder(res.Buffer()) // TODO: decoder interface
 	return decoder.Decode(val)
 }
 
-// Data :
-func (res *ResponseAdapter) Data() interface{} {
+// JSONData :
+func (res *ResponseAdapter) JSONData() interface{} {
 	var val interface{}
-	if err := res.ParseData(&val); err != nil {
+	if err := res.ParseJSONData(&val); err != nil {
 		panic(err) // xxx:
 	}
 	return val

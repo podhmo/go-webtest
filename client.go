@@ -24,8 +24,8 @@ type Response interface {
 
 // Extractor :
 type Extractor interface {
-	ParseData(val interface{}) error
-	Data() interface{}
+	ParseJSONData(val interface{}) error
+	JSONData() interface{}
 
 	Body() []byte
 	LazyBodyString() fmt.Stringer

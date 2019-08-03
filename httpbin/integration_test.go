@@ -25,7 +25,7 @@ func TestIt(t *testing.T) {
 		// todo: assertion response
 		noerror.Should(t,
 			jsonequal.ShouldBeSame(
-				jsonequal.FromRawWithBytes(got.Data(), got.Body()),
+				jsonequal.FromRawWithBytes(got.JSONData(), got.Body()),
 				jsonequal.FromString(`{"message": "OK", "status": 200}`),
 			),
 		)
@@ -49,7 +49,7 @@ func TestUnit(t *testing.T) {
 		// todo: assertion response
 		noerror.Should(t,
 			jsonequal.ShouldBeSame(
-				jsonequal.FromRawWithBytes(got.Data(), got.Body()),
+				jsonequal.FromRawWithBytes(got.JSONData(), got.Body()),
 				jsonequal.FromString(`{"message": "OK", "status": 200}`),
 			),
 		)
