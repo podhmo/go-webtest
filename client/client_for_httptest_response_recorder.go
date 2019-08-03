@@ -6,8 +6,8 @@ import (
 	"net/http/httptest"
 	"sync"
 
-	"github.com/podhmo/go-webtest/internal"
 	"github.com/podhmo/go-webtest/client/response"
+	"github.com/podhmo/go-webtest/internal"
 )
 
 // HTTPTestResponseRecorderClient :
@@ -17,7 +17,9 @@ type HTTPTestResponseRecorderClient struct {
 }
 
 // Do :
-func (c *HTTPTestResponseRecorderClient) Do(req *http.Request) (response.Response, error, func()) {
+func (c *HTTPTestResponseRecorderClient) Do(
+	req *http.Request,
+) (response.Response, error, func()) {
 	var adapter *response.Adapter
 	var raw *http.Response
 	var once sync.Once
@@ -37,10 +39,13 @@ func (c *HTTPTestResponseRecorderClient) Do(req *http.Request) (response.Respons
 	return adapter, nil, adapter.Close
 }
 
-// Get :
-func (c *HTTPTestResponseRecorderClient) Get(path string) (response.Response, error, func()) {
+// Request :
+func (c *HTTPTestResponseRecorderClient) Request(
+	method string,
+	path string,
+	body io.Reader,
+) (response.Response, error, func()) {
 	url := internal.URLJoin(c.BasePath, path)
-	var body io.Reader // xxx (TODO: functional options)
-	req := httptest.NewRequest("GET", url, body)
+	req := httptest.NewRequest(method, url, body)
 	return c.Do(req)
 }

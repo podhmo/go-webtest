@@ -23,9 +23,11 @@ func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) Clie
 	for _, opt := range options {
 		opt(c)
 	}
-	return &client.HTTPTestServerClient{
-		Server:   ts,
-		BasePath: c.BasePath,
+	return &client.Adapter{
+		Internal: &client.HTTPTestServerClient{
+			Server:   ts,
+			BasePath: c.BasePath,
+		},
 	}
 }
 
@@ -35,9 +37,11 @@ func NewClientFromHandler(handlerFunc http.HandlerFunc, options ...func(*Config)
 	for _, opt := range options {
 		opt(c)
 	}
-	return &client.HTTPTestResponseRecorderClient{
-		HandlerFunc: handlerFunc,
-		BasePath:    c.BasePath,
+	return &client.Adapter{
+		Internal: &client.HTTPTestResponseRecorderClient{
+			HandlerFunc: handlerFunc,
+			BasePath:    c.BasePath,
+		},
 	}
 }
 
