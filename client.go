@@ -8,24 +8,20 @@ import (
 	"strings"
 
 	"github.com/podhmo/go-webtest/client"
+	"github.com/podhmo/go-webtest/middlewares"
 )
 
 // Response :
 type Response = client.Response
+
+// Middleware :
+type Middleware = middlewares.Middleware
 
 // Internal :
 type Internal interface {
 	DoFromRequest(req *http.Request) (Response, error, func())
 	NewRequest(method string, path string, body io.Reader) (*http.Request, error)
 }
-
-// todo: rename
-
-// Middleware :
-type Middleware = func(
-	req *http.Request,
-	inner func(*http.Request) (Response, error, func()),
-) (Response, error, func())
 
 // Client :
 type Client struct {
