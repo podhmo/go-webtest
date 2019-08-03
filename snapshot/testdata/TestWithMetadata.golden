@@ -1,0 +1,11 @@
+{
+  "modifiedAt": "2019-07-30T03:19:12.108704409+09:00",
+  "metadata": {
+    "method": "GET",
+    "path": "/greeting",
+    "status": 200
+  },
+  "data": {
+    "message": "hello"
+  }
+}

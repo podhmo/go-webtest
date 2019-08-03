@@ -32,8 +32,8 @@ func NewTestdataRecorder(loader *Loader) *Recorder {
 
 // Config :
 type Config struct {
-	Recorder   *Recorder
-	ReplaceMap map[string]interface{}
+	Recorder *Recorder
+	Extra    *Extra
 
 	Overwrite bool
 	self      string
@@ -49,14 +49,14 @@ func (c *Config) Run(
 	existed := r.Exists(fpath)
 	if !existed || c.Overwrite || c.self == fpath || c.self == filepath.Base(fpath) {
 		t.Logf("save testdata: %q", fpath)
-		if err := r.Loader.Save(fpath, got, c.ReplaceMap); err != nil {
+		if err := r.Loader.Save(fpath, got, c.Extra); err != nil {
 			t.Fatalf("record: %s", err)
 		}
 	}
 	t.Logf("load testdata: %q", fpath)
 
 	var want interface{}
-	if err := r.Loader.Load(fpath, &want, c.ReplaceMap); err != nil {
+	if err := r.Loader.Load(fpath, &want, c.Extra); err != nil {
 		t.Fatalf("replay: %s", err)
 	}
 	return want
@@ -78,6 +78,7 @@ func Take(
 ) interface{} {
 	c := &Config{
 		Overwrite: false,
+		Extra:     &Extra{},
 	}
 
 	// default overwrite
@@ -118,13 +119,20 @@ func WithUpdateByEnvvar(s string) func(*Config) {
 // WithReplaceMap replace data when loading stored data
 func WithReplaceMap(repMap map[string]interface{}) func(*Config) {
 	return func(c *Config) {
-		c.ReplaceMap = repMap
+		c.Extra.ReplaceMap = repMap
 	}
 }
 
 // WithReplaceMapNormalized replace data when loading stored data
 func WithReplaceMapNormalized(repMap map[string]interface{}) func(*Config) {
 	return func(c *Config) {
-		c.ReplaceMap = jsonequal.MustNormalize(repMap).(map[string]interface{})
+		c.Extra.ReplaceMap = jsonequal.MustNormalize(repMap).(map[string]interface{})
+	}
+}
+
+// WithMetadata :
+func WithMetadata(metadata map[string]interface{}) func(*Config) {
+	return func(c *Config) {
+		c.Extra.Metadata = metadata
 	}
 }
