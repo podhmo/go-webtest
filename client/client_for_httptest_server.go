@@ -17,7 +17,7 @@ type HTTPTestServerClient struct {
 }
 
 // Do :
-func (c *HTTPTestServerClient) DoFromRequest(req *http.Request) (Response, error, func()) {
+func (c *HTTPTestServerClient) Do(req *http.Request) (Response, error, func()) {
 	client := c.client
 	if c.client == nil {
 		client = http.DefaultClient

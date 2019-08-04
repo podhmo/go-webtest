@@ -13,9 +13,15 @@ import (
 // Response :
 type Response = client.Response
 
+// Middleware :
+type Middleware = func(
+	req *http.Request,
+	inner func(*http.Request) (Response, error, func()),
+) (Response, error, func())
+
 // Internal :
 type Internal interface {
-	DoFromRequest(req *http.Request) (Response, error, func())
+	Do(req *http.Request) (Response, error, func())
 	NewRequest(method string, path string, body io.Reader) (*http.Request, error)
 }
 
@@ -33,6 +39,15 @@ func (c *Client) Copy() *Client {
 	}
 }
 
+// Bind :
+func (c *Client) Bind(options ...func(*Config)) *Client {
+	newClient := c.Copy()
+	for _, opt := range options {
+		opt(newClient.Config)
+	}
+	return newClient
+}
+
 // Do :
 func (c *Client) Do(
 	path string,
@@ -48,17 +63,39 @@ func (c *Client) Do(
 	if err != nil {
 		return nil, err, nil
 	}
-	return c.DoFromRequest(req)
+	return c.communicate(req, config)
 }
 
 // DoFromRequest :
 func (c *Client) DoFromRequest(
 	req *http.Request,
+	options ...func(*Config),
 ) (Response, error, func()) {
-	for _, modify := range c.Config.RequestModifiers {
-		modify(req)
+	config := c.Config.Copy()
+	for _, opt := range options {
+		opt(config)
 	}
-	return c.Internal.DoFromRequest(req)
+	return c.communicate(req, config)
+}
+
+// DoFromRequest :
+func (c *Client) communicate(
+	req *http.Request,
+	config *Config,
+) (Response, error, func()) {
+	for _, transform := range config.Transformers {
+		transform(req)
+	}
+
+	doRequet := c.Internal.Do
+	for i := range config.Middlewares {
+		middleware := config.Middlewares[i]
+		inner := doRequet
+		doRequet = func(req *http.Request) (Response, error, func()) {
+			return middleware(req, inner)
+		}
+	}
+	return doRequet(req)
 }
 
 // NewClientFromTestServer :
@@ -94,9 +131,10 @@ func NewClientFromHandler(handlerFunc http.HandlerFunc, options ...func(*Config)
 // Config :
 type Config struct {
 	BasePath string
+	Method   string
 
-	Method           string
-	RequestModifiers []func(*http.Request)
+	Transformers []func(*http.Request) // request transformers
+	Middlewares  []Middleware          // client middlewares
 
 	body io.Reader // only once
 }
@@ -108,53 +146,57 @@ func NewConfig() *Config {
 	}
 }
 
-// Config :
+// Copy :
 func (c *Config) Copy() *Config {
 	return &Config{
 		BasePath: c.BasePath,
-		RequestModifiers: append(
-			make([]func(*http.Request), 0, len(c.RequestModifiers)),
-			c.RequestModifiers...,
+		Transformers: append(
+			make([]func(*http.Request), 0, len(c.Transformers)),
+			c.Transformers...,
+		),
+		Middlewares: append(
+			make([]Middleware, 0, len(c.Middlewares)),
+			c.Middlewares...,
 		),
 	}
 }
 
-// WithBasePath :
+// WithBasePath set base path
 func WithBasePath(basePath string) func(*Config) {
 	return func(c *Config) {
 		c.BasePath = basePath
 	}
 }
 
-// WithForm :
+// WithForm setup as send form-data request
 func WithForm(data url.Values) func(*Config) {
 	return func(c *Config) {
 		if c.body != nil {
 			panic("body is already set, enable to set body only once") // xxx
 		}
 		c.body = strings.NewReader(data.Encode())
-		c.RequestModifiers = append(c.RequestModifiers, func(req *http.Request) {
+		c.Transformers = append(c.Transformers, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		})
 	}
 }
 
-// WithJSON :
+// WithJSON setup as json request
 func WithJSON(body io.Reader) func(*Config) {
 	return func(c *Config) {
 		if c.body != nil {
 			panic("body is already set, enable to set body only once") // xxx
 		}
 		c.body = body
-		c.RequestModifiers = append(c.RequestModifiers, func(req *http.Request) {
+		c.Transformers = append(c.Transformers, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/json")
 		})
 	}
 }
 
-// AddModifyRequest :
-func AddModifyRequest(modify func(*http.Request)) func(*Config) {
+// WithTransformer adds request transformer
+func WithTransformer(transform func(*http.Request)) func(*Config) {
 	return func(c *Config) {
-		c.RequestModifiers = append(c.RequestModifiers, modify)
+		c.Transformers = append(c.Transformers, transform)
 	}
 }
