@@ -3,6 +3,7 @@ package middlewares
 import (
 	"net/http"
 
+	webtest "github.com/podhmo/go-webtest"
 	"github.com/podhmo/go-webtest/client"
 )
 
@@ -10,10 +11,7 @@ import (
 type Response = client.Response
 
 // Middleware :
-type Middleware = func(
-	req *http.Request,
-	inner func(*http.Request) (Response, error, func()),
-) (Response, error, func())
+type Middleware = webtest.Middleware
 
 // NewMiddleware :
 func NewMiddleware(wrap func(res Response, req *http.Request) error) Middleware {

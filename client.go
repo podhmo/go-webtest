@@ -8,14 +8,16 @@ import (
 	"strings"
 
 	"github.com/podhmo/go-webtest/client"
-	"github.com/podhmo/go-webtest/middlewares"
 )
 
 // Response :
 type Response = client.Response
 
 // Middleware :
-type Middleware = middlewares.Middleware
+type Middleware = func(
+	req *http.Request,
+	inner func(*http.Request) (Response, error, func()),
+) (Response, error, func())
 
 // Internal :
 type Internal interface {
@@ -35,6 +37,15 @@ func (c *Client) Copy() *Client {
 		Internal: c.Internal,
 		Config:   c.Config.Copy(),
 	}
+}
+
+// Bind :
+func (c *Client) Bind(options ...func(*Config)) *Client {
+	newClient := c.Copy()
+	for _, opt := range options {
+		opt(newClient.Config)
+	}
+	return newClient
 }
 
 // Do :
@@ -187,12 +198,5 @@ func WithJSON(body io.Reader) func(*Config) {
 func WithTransformer(transform func(*http.Request)) func(*Config) {
 	return func(c *Config) {
 		c.Transformers = append(c.Transformers, transform)
-	}
-}
-
-// WithMiddleware adds middleware
-func WithMiddleware(middleware Middleware) func(*Config) {
-	return func(c *Config) {
-		c.Middlewares = append(c.Middlewares, middleware)
 	}
 }

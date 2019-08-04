@@ -6,6 +6,7 @@ import (
 	webtest "github.com/podhmo/go-webtest"
 	"github.com/podhmo/go-webtest/httpbin/httpbintest"
 	"github.com/podhmo/go-webtest/jsonequal"
+	"github.com/podhmo/go-webtest/middlewares"
 	"github.com/podhmo/noerror"
 )
 
@@ -31,6 +32,26 @@ func TestIt(t *testing.T) {
 		)
 
 		// todo: assertion db check
+	})
+
+	t.Run("with middlewares", func(t *testing.T) {
+		client := client.Bind(
+			middlewares.ExpectStatusCode(200),
+		)
+
+		t.Run("200", func(t *testing.T) {
+			got, err, teardown := client.Do("/status/200")
+			noerror.Must(t, err)
+			defer teardown()
+
+			// todo: assertion response
+			noerror.Should(t,
+				jsonequal.ShouldBeSame(
+					jsonequal.FromRawWithBytes(got.JSONData(), got.Body()),
+					jsonequal.FromString(`{"message": "OK", "status": 200}`),
+				),
+			)
+		})
 	})
 }
 
