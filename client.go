@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
+	"testing"
 
 	"github.com/podhmo/go-webtest/client"
 )
@@ -15,6 +16,7 @@ type Response = client.Response
 
 // Middleware :
 type Middleware = func(
+	t testing.TB,
 	req *http.Request,
 	inner func(*http.Request) (Response, error, func()),
 ) (Response, error, func())
@@ -50,24 +52,28 @@ func (c *Client) Bind(options ...func(*Config)) *Client {
 
 // Do :
 func (c *Client) Do(
+	t testing.TB,
 	path string,
 	options ...func(*Config),
 ) (Response, error, func()) {
 	config := c.Config.Copy()
+
 	for _, opt := range options {
 		opt(config)
 	}
+
 	method := config.Method
 	body := config.body
 	req, err := c.Internal.NewRequest(method, path, body)
 	if err != nil {
 		return nil, err, nil
 	}
-	return c.communicate(req, config)
+	return c.communicate(t, req, config)
 }
 
 // DoFromRequest :
 func (c *Client) DoFromRequest(
+	t testing.TB,
 	req *http.Request,
 	options ...func(*Config),
 ) (Response, error, func()) {
@@ -75,11 +81,12 @@ func (c *Client) DoFromRequest(
 	for _, opt := range options {
 		opt(config)
 	}
-	return c.communicate(req, config)
+	return c.communicate(t, req, config)
 }
 
 // DoFromRequest :
 func (c *Client) communicate(
+	t testing.TB,
 	req *http.Request,
 	config *Config,
 ) (Response, error, func()) {
@@ -92,7 +99,7 @@ func (c *Client) communicate(
 		middleware := config.Middlewares[i]
 		inner := doRequet
 		doRequet = func(req *http.Request) (Response, error, func()) {
-			return middleware(req, inner)
+			return middleware(t, req, inner)
 		}
 	}
 	return doRequet(req)
