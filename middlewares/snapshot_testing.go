@@ -9,7 +9,7 @@ import (
 )
 
 // SnapshotTesting :
-func SnapshotTesting(options ...func(sc *snapshot.Config)) func(*webtest.Config) {
+func SnapshotTesting(want *interface{}, options ...func(sc *snapshot.Config)) func(*webtest.Config) {
 	return func(c *webtest.Config) {
 		c.Middlewares = append(c.Middlewares, NewMiddleware(
 			func(
@@ -17,7 +17,6 @@ func SnapshotTesting(options ...func(sc *snapshot.Config)) func(*webtest.Config)
 				res Response,
 				req *http.Request,
 			) error {
-				// TODO: get stored data, in testcode
 				// TODO: following .har structure?
 
 				storedata := map[string]interface{}{
@@ -30,7 +29,10 @@ func SnapshotTesting(options ...func(sc *snapshot.Config)) func(*webtest.Config)
 						"data":       res.JSONData(),
 					},
 				}
-				_ = snapshot.Take(t, storedata, options...)
+
+				// assign (side-effect!!), want is response data
+				loaddata := snapshot.Take(t, storedata, options...)
+				*want = loaddata.(map[string]interface{})["response"].(map[string]interface{})["data"]
 				return nil
 			}))
 	}

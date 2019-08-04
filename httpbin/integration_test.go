@@ -35,21 +35,37 @@ func TestIt(t *testing.T) {
 	})
 
 	t.Run("with middlewares", func(t *testing.T) {
-		client := client.Bind(
-			middlewares.SnapshotTesting(),
-			middlewares.ExpectStatusCode(200),
-		)
-
-		t.Run("200", func(t *testing.T) {
+		t.Run("200, status check", func(t *testing.T) {
+			client := client.Bind(
+				middlewares.ExpectStatusCode(200),
+			)
 			got, err, teardown := client.Do(t, "/status/200")
 			noerror.Must(t, err)
 			defer teardown()
 
-			// todo: assertion response
 			noerror.Should(t,
 				jsonequal.ShouldBeSame(
 					jsonequal.FromRawWithBytes(got.JSONData(), got.Body()),
 					jsonequal.FromString(`{"message": "OK", "status": 200}`),
+				),
+			)
+		})
+
+		t.Run("200", func(t *testing.T) {
+			var want interface{}
+
+			client := client.Bind(
+				middlewares.SnapshotTesting(&want),
+			)
+
+			got, err, teardown := client.Do(t, "/status/200")
+			noerror.Must(t, err)
+			defer teardown()
+
+			noerror.Should(t,
+				jsonequal.ShouldBeSame(
+					jsonequal.FromRaw(want),
+					jsonequal.FromRawWithBytes(got.JSONData(), got.Body()),
 				),
 			)
 		})
