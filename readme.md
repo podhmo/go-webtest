@@ -4,10 +4,6 @@
 
 easy is better than simple.
 
-### try
-
-[try/readme.md](./try/readme.md)
-
 ### snapshot
 
 todo
