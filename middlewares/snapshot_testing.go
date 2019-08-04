@@ -28,7 +28,7 @@ func SnapshotTesting(want *interface{}, options ...func(sc *snapshot.Config)) fu
 }
 
 // TakeSnapshot always takes a snapshot
-func TakeSnapshot(want *interface{}, options ...func(sc *snapshot.Config)) func(*webtest.Config) {
+func TakeSnapshot(options ...func(sc *snapshot.Config)) func(*webtest.Config) {
 	return func(c *webtest.Config) {
 		c.Middlewares = append(c.Middlewares, NewMiddleware(
 			func(
