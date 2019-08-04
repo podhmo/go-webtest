@@ -16,7 +16,7 @@ type HTTPTestResponseRecorderClient struct {
 }
 
 // Do :
-func (c *HTTPTestResponseRecorderClient) DoFromRequest(
+func (c *HTTPTestResponseRecorderClient) Do(
 	req *http.Request,
 ) (Response, error, func()) {
 	var adapter *ResponseAdapter

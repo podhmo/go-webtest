@@ -19,7 +19,7 @@ type Middleware = middlewares.Middleware
 
 // Internal :
 type Internal interface {
-	DoFromRequest(req *http.Request) (Response, error, func())
+	Do(req *http.Request) (Response, error, func())
 	NewRequest(method string, path string, body io.Reader) (*http.Request, error)
 }
 
@@ -76,7 +76,7 @@ func (c *Client) communicate(
 		transform(req)
 	}
 
-	doRequet := c.Internal.DoFromRequest
+	doRequet := c.Internal.Do
 	for i := range config.Middlewares {
 		middleware := config.Middlewares[i]
 		inner := doRequet
@@ -135,7 +135,7 @@ func NewConfig() *Config {
 	}
 }
 
-// Config :
+// Copy :
 func (c *Config) Copy() *Config {
 	return &Config{
 		BasePath: c.BasePath,
@@ -150,14 +150,14 @@ func (c *Config) Copy() *Config {
 	}
 }
 
-// WithBasePath :
+// WithBasePath set base path
 func WithBasePath(basePath string) func(*Config) {
 	return func(c *Config) {
 		c.BasePath = basePath
 	}
 }
 
-// WithForm :
+// WithForm setup as send form-data request
 func WithForm(data url.Values) func(*Config) {
 	return func(c *Config) {
 		if c.body != nil {
@@ -170,7 +170,7 @@ func WithForm(data url.Values) func(*Config) {
 	}
 }
 
-// WithJSON :
+// WithJSON setup as json request
 func WithJSON(body io.Reader) func(*Config) {
 	return func(c *Config) {
 		if c.body != nil {
@@ -183,14 +183,14 @@ func WithJSON(body io.Reader) func(*Config) {
 	}
 }
 
-// WithTransformRequest :
-func WithTransformRequest(transform func(*http.Request)) func(*Config) {
+// WithTransformer adds request transformer
+func WithTransformer(transform func(*http.Request)) func(*Config) {
 	return func(c *Config) {
 		c.Transformers = append(c.Transformers, transform)
 	}
 }
 
-// WithMiddleware :
+// WithMiddleware adds middleware
 func WithMiddleware(middleware Middleware) func(*Config) {
 	return func(c *Config) {
 		c.Middlewares = append(c.Middlewares, middleware)
