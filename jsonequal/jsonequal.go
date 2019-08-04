@@ -111,15 +111,15 @@ func ShouldBeSame(
 
 	lv, lb, err := lsrc()
 	if err != nil {
-		return caller.WrapfFunc(err, "left")
+		return caller.WrapfFunc(err, "on load left data")
 	}
 	rv, rb, err := rsrc()
 	if err != nil {
-		return caller.WrapfFunc(err, "right")
+		return caller.WrapfFunc(err, "on load right data")
 	}
 
 	if !caller.EqualFunc(lv, rv) {
-		return caller.WrapfFunc(caller.FailFunc(lv, rv, lb, rb), "equal")
+		return caller.WrapfFunc(caller.FailFunc(lv, rv, lb, rb), "on equal check")
 	}
 	return nil
 }
