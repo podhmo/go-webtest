@@ -52,7 +52,7 @@ func (c *Client) Do(
 	if err != nil {
 		return nil, err, nil
 	}
-	return c.do(req, config)
+	return c.communicate(req, config)
 }
 
 // DoFromRequest :
@@ -64,16 +64,16 @@ func (c *Client) DoFromRequest(
 	for _, opt := range options {
 		opt(config)
 	}
-	return c.do(req, config)
+	return c.communicate(req, config)
 }
 
 // DoFromRequest :
-func (c *Client) do(
+func (c *Client) communicate(
 	req *http.Request,
 	config *Config,
 ) (Response, error, func()) {
-	for _, modify := range config.RequestModifiers {
-		modify(req)
+	for _, transform := range config.Transformers {
+		transform(req)
 	}
 
 	doRequet := c.Internal.DoFromRequest
@@ -120,10 +120,10 @@ func NewClientFromHandler(handlerFunc http.HandlerFunc, options ...func(*Config)
 // Config :
 type Config struct {
 	BasePath string
+	Method   string
 
-	Method           string
-	RequestModifiers []func(*http.Request)
-	Middlewares      []Middleware // todo: rename
+	Transformers []func(*http.Request) // request transformers
+	Middlewares  []Middleware          // client middlewares
 
 	body io.Reader // only once
 }
@@ -139,9 +139,9 @@ func NewConfig() *Config {
 func (c *Config) Copy() *Config {
 	return &Config{
 		BasePath: c.BasePath,
-		RequestModifiers: append(
-			make([]func(*http.Request), 0, len(c.RequestModifiers)),
-			c.RequestModifiers...,
+		Transformers: append(
+			make([]func(*http.Request), 0, len(c.Transformers)),
+			c.Transformers...,
 		),
 		Middlewares: append(
 			make([]Middleware, 0, len(c.Middlewares)),
@@ -164,7 +164,7 @@ func WithForm(data url.Values) func(*Config) {
 			panic("body is already set, enable to set body only once") // xxx
 		}
 		c.body = strings.NewReader(data.Encode())
-		c.RequestModifiers = append(c.RequestModifiers, func(req *http.Request) {
+		c.Transformers = append(c.Transformers, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		})
 	}
@@ -177,16 +177,16 @@ func WithJSON(body io.Reader) func(*Config) {
 			panic("body is already set, enable to set body only once") // xxx
 		}
 		c.body = body
-		c.RequestModifiers = append(c.RequestModifiers, func(req *http.Request) {
+		c.Transformers = append(c.Transformers, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/json")
 		})
 	}
 }
 
-// WithModifyRequest :
-func WithModifyRequest(modify func(*http.Request)) func(*Config) {
+// WithTransformRequest :
+func WithTransformRequest(transform func(*http.Request)) func(*Config) {
 	return func(c *Config) {
-		c.RequestModifiers = append(c.RequestModifiers, modify)
+		c.Transformers = append(c.Transformers, transform)
 	}
 }
 
