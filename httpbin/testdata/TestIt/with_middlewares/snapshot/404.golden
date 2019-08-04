@@ -1,0 +1,16 @@
+{
+  "modifiedAt": "2019-08-04T19:10:16.324202486+09:00",
+  "data": {
+    "request": {
+      "method": "GET",
+      "path": "/status/404"
+    },
+    "response": {
+      "data": {
+        "message": "Not Found",
+        "status": 404
+      },
+      "statusCode": 404
+    }
+  }
+}

@@ -51,23 +51,37 @@ func TestIt(t *testing.T) {
 			)
 		})
 
-		t.Run("200", func(t *testing.T) {
+		t.Run("snapshot", func(t *testing.T) {
 			var want interface{}
 
 			client := client.Bind(
 				middlewares.SnapshotTesting(&want),
 			)
 
-			got, err, teardown := client.Do(t, "/status/200")
-			noerror.Must(t, err)
-			defer teardown()
+			cases := []struct {
+				path string
+				msg  string
+			}{
+				{msg: "200", path: "/status/200"},
+				{msg: "201", path: "/status/201"},
+				{msg: "404", path: "/status/404"},
+			}
 
-			noerror.Should(t,
-				jsonequal.ShouldBeSame(
-					jsonequal.FromRaw(want),
-					jsonequal.FromRawWithBytes(got.JSONData(), got.Body()),
-				),
-			)
+			for _, c := range cases {
+				c := c
+				t.Run(c.msg, func(t *testing.T) {
+					got, err, teardown := client.Do(t, c.path)
+					noerror.Must(t, err)
+					defer teardown()
+
+					noerror.Should(t,
+						jsonequal.ShouldBeSame(
+							jsonequal.FromRaw(want),
+							jsonequal.FromRawWithBytes(got.JSONData(), got.Body()),
+						),
+					)
+				})
+			}
 		})
 	})
 }
