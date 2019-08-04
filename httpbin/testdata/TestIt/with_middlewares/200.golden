@@ -1,0 +1,16 @@
+{
+  "modifiedAt": "2019-08-04T11:03:56.587858715+09:00",
+  "data": {
+    "request": {
+      "method": "GET",
+      "path": "/status/200"
+    },
+    "response": {
+      "data": {
+        "message": "OK",
+        "status": 200
+      },
+      "statusCode": 200
+    }
+  }
+}

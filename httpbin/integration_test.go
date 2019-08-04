@@ -16,7 +16,7 @@ func TestIt(t *testing.T) {
 	client := webtest.NewClientFromTestServer(ts)
 
 	t.Run("200", func(t *testing.T) {
-		got, err, teardown := client.Do("/status/200")
+		got, err, teardown := client.Do(t, "/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.StatusCode(), err),
 			"response: ", got.LazyBodyString(), // add more contextual information?
@@ -36,11 +36,12 @@ func TestIt(t *testing.T) {
 
 	t.Run("with middlewares", func(t *testing.T) {
 		client := client.Bind(
+			middlewares.SnapshotTesting(),
 			middlewares.ExpectStatusCode(200),
 		)
 
 		t.Run("200", func(t *testing.T) {
-			got, err, teardown := client.Do("/status/200")
+			got, err, teardown := client.Do(t, "/status/200")
 			noerror.Must(t, err)
 			defer teardown()
 
@@ -60,7 +61,7 @@ func TestUnit(t *testing.T) {
 	client := webtest.NewClientFromHandler(handler)
 
 	t.Run("200", func(t *testing.T) {
-		got, err, teardown := client.Do("/status/200")
+		got, err, teardown := client.Do(t, "/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.StatusCode(), err),
 			"response: ", got.LazyBodyString(), // add more contextual information?
