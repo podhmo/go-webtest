@@ -25,7 +25,7 @@ type Loader struct {
 
 // Save :
 func (r *Loader) Save(fpath string, val interface{}, extra *Extra) (err error) {
-	if err := os.Mkdir(filepath.Dir(fpath), 0744); err != nil {
+	if err := os.MkdirAll(filepath.Dir(fpath), 0744); err != nil {
 		if !os.IsExist(err) {
 			return errors.WithMessagef(err, "create testdata directory, %q", filepath.Dir(fpath))
 		}
