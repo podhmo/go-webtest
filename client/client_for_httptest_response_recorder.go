@@ -11,8 +11,8 @@ import (
 
 // HTTPTestResponseRecorderClient :
 type HTTPTestResponseRecorderClient struct {
-	HandlerFunc http.HandlerFunc
-	BasePath    string
+	Handler  http.Handler
+	BasePath string
 }
 
 // Do :
@@ -24,7 +24,7 @@ func (c *HTTPTestResponseRecorderClient) Do(
 	var once sync.Once
 
 	w := httptest.NewRecorder()
-	c.HandlerFunc(w, req)
+	c.Handler.ServeHTTP(w, req)
 
 	adapter = NewResponseAdapter(
 		func() *http.Response {

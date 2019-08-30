@@ -121,15 +121,15 @@ func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Cli
 }
 
 // NewClientFromHandler :
-func NewClientFromHandler(handlerFunc http.HandlerFunc, options ...func(*Config)) *Client {
+func NewClientFromHandler(handler http.Handler, options ...func(*Config)) *Client {
 	config := NewConfig()
 	for _, opt := range options {
 		opt(config)
 	}
 	return &Client{
 		Internal: &client.HTTPTestResponseRecorderClient{
-			HandlerFunc: handlerFunc,
-			BasePath:    config.BasePath,
+			Handler:  handler,
+			BasePath: config.BasePath,
 		},
 		Config: config,
 	}
