@@ -1,4 +1,4 @@
-package client
+package testclient
 
 import (
 	"bytes"
@@ -10,6 +10,25 @@ import (
 
 	"github.com/podhmo/go-webtest/internal"
 )
+
+// Response :
+type Response interface {
+	Close()
+
+	Response() *http.Response
+	StatusCode() int
+
+	Extractor
+}
+
+// Extractor :
+type Extractor interface {
+	ParseJSONData(val interface{}) error
+	JSONData() interface{}
+
+	Body() []byte
+	LazyBodyString() fmt.Stringer
+}
 
 // NewResponseAdapter :
 func NewResponseAdapter(get func() *http.Response) *ResponseAdapter {

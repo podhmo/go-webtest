@@ -1,4 +1,4 @@
-package client
+package testclient
 
 import (
 	"io"
@@ -9,14 +9,14 @@ import (
 	"github.com/podhmo/go-webtest/internal"
 )
 
-// HTTPTestResponseRecorderClient :
-type HTTPTestResponseRecorderClient struct {
+// RecorderClient :
+type RecorderClient struct {
 	Handler  http.Handler
 	BasePath string
 }
 
 // Do :
-func (c *HTTPTestResponseRecorderClient) Do(
+func (c *RecorderClient) Do(
 	req *http.Request,
 ) (Response, error, func()) {
 	var adapter *ResponseAdapter
@@ -39,7 +39,7 @@ func (c *HTTPTestResponseRecorderClient) Do(
 }
 
 // NewRequest :
-func (c *HTTPTestResponseRecorderClient) NewRequest(
+func (c *RecorderClient) NewRequest(
 	method string,
 	path string,
 	body io.Reader,
