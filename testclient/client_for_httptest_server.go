@@ -1,4 +1,4 @@
-package client
+package testclient
 
 import (
 	"io"
@@ -9,15 +9,15 @@ import (
 	"github.com/podhmo/go-webtest/internal"
 )
 
-// HTTPTestServerClient :
-type HTTPTestServerClient struct {
+// ServerClient :
+type ServerClient struct {
 	client   *http.Client
 	Server   *httptest.Server
 	BasePath string // need?
 }
 
 // Do :
-func (c *HTTPTestServerClient) Do(req *http.Request) (Response, error, func()) {
+func (c *ServerClient) Do(req *http.Request) (Response, error, func()) {
 	client := c.client
 	if c.client == nil {
 		client = http.DefaultClient
@@ -44,7 +44,7 @@ func (c *HTTPTestServerClient) Do(req *http.Request) (Response, error, func()) {
 }
 
 // NewRequest :
-func (c *HTTPTestServerClient) NewRequest(
+func (c *ServerClient) NewRequest(
 	method string,
 	path string,
 	body io.Reader,

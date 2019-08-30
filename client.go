@@ -8,11 +8,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/podhmo/go-webtest/client"
+	"github.com/podhmo/go-webtest/testclient"
 )
 
 // Response :
-type Response = client.Response
+type Response = testclient.Response
 
 // Middleware :
 type Middleware = func(
@@ -112,7 +112,7 @@ func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Cli
 		opt(config)
 	}
 	return &Client{
-		Internal: &client.HTTPTestServerClient{
+		Internal: &testclient.ServerClient{
 			Server:   ts,
 			BasePath: config.BasePath,
 		},
@@ -127,7 +127,7 @@ func NewClientFromHandler(handler http.Handler, options ...func(*Config)) *Clien
 		opt(config)
 	}
 	return &Client{
-		Internal: &client.HTTPTestResponseRecorderClient{
+		Internal: &testclient.RecorderClient{
 			Handler:  handler,
 			BasePath: config.BasePath,
 		},

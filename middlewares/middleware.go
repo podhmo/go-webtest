@@ -5,11 +5,11 @@ import (
 	"testing"
 
 	webtest "github.com/podhmo/go-webtest"
-	"github.com/podhmo/go-webtest/client"
+	"github.com/podhmo/go-webtest/testclient"
 )
 
 // Response :
-type Response = client.Response
+type Response = testclient.Response
 
 // Middleware :
 type Middleware = webtest.Middleware
