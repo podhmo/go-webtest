@@ -6,7 +6,7 @@ import (
 	webtest "github.com/podhmo/go-webtest"
 	"github.com/podhmo/go-webtest/httpbin/httpbintest"
 	"github.com/podhmo/go-webtest/jsonequal"
-	"github.com/podhmo/go-webtest/middlewares"
+	"github.com/podhmo/go-webtest/ex"
 	"github.com/podhmo/noerror"
 )
 
@@ -18,8 +18,8 @@ func TestIt(t *testing.T) {
 	t.Run("200", func(t *testing.T) {
 		got, err, teardown := client.Do(t, "/status/200")
 		noerror.Must(t,
-			noerror.Equal(200).ActualWithError(got.StatusCode(), err),
-			"response: ", got.LazyBodyString(), // add more contextual information?
+			noerror.Equal(200).ActualWithError(got.Code(), err),
+			"response: ", got.LazyText(), // add more contextual information?
 		)
 		defer teardown()
 
@@ -37,7 +37,7 @@ func TestIt(t *testing.T) {
 	t.Run("with middlewares", func(t *testing.T) {
 		t.Run("200, status check", func(t *testing.T) {
 			client := client.Bind(
-				middlewares.ExpectStatusCode(200),
+				ex.ExpectCode(200),
 			)
 			got, err, teardown := client.Do(t, "/status/200")
 			noerror.Must(t, err)
@@ -55,7 +55,7 @@ func TestIt(t *testing.T) {
 			var want interface{}
 
 			client := client.Bind(
-				middlewares.SnapshotTesting(&want),
+				ex.SnapshotTesting(&want),
 			)
 
 			cases := []struct {
@@ -93,8 +93,8 @@ func TestUnit(t *testing.T) {
 	t.Run("200", func(t *testing.T) {
 		got, err, teardown := client.Do(t, "/status/200")
 		noerror.Must(t,
-			noerror.Equal(200).ActualWithError(got.StatusCode(), err),
-			"response: ", got.LazyBodyString(), // add more contextual information?
+			noerror.Equal(200).ActualWithError(got.Code(), err),
+			"response: ", got.LazyText(), // add more contextual information?
 		)
 		defer teardown()
 

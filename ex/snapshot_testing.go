@@ -1,4 +1,4 @@
-package middlewares
+package ex
 
 import (
 	"net/http"
@@ -54,7 +54,7 @@ func createSnapshotData(res Response, req *http.Request) interface{} {
 			"path":   req.URL.Path + req.URL.RawQuery,
 		},
 		"response": map[string]interface{}{
-			"statusCode": res.StatusCode(),
+			"statusCode": res.Code(),
 			"data":       res.JSONData(),
 		},
 	}

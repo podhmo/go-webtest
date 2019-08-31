@@ -16,7 +16,7 @@ type Response interface {
 	Close()
 
 	Response() *http.Response
-	StatusCode() int
+	Code() int
 
 	Extractor
 }
@@ -27,7 +27,8 @@ type Extractor interface {
 	JSONData() interface{}
 
 	Body() []byte
-	LazyBodyString() fmt.Stringer
+	Text() string
+	LazyText() fmt.Stringer
 }
 
 // NewResponseAdapter :
@@ -83,8 +84,8 @@ func (res *ResponseAdapter) Buffer() *bytes.Buffer {
 	return bytes.NewBuffer(res.bytes)
 }
 
-// StatusCode :
-func (res *ResponseAdapter) StatusCode() int {
+// Code :
+func (res *ResponseAdapter) Code() int {
 	return res.Response().StatusCode
 }
 
@@ -108,8 +109,13 @@ func (res *ResponseAdapter) Body() []byte {
 	return res.Buffer().Bytes()
 }
 
-// LazyBodyString :
-func (res *ResponseAdapter) LazyBodyString() fmt.Stringer {
+// Text :
+func (res *ResponseAdapter) Text() string {
+	return res.Buffer().String()
+}
+
+// LazyText :
+func (res *ResponseAdapter) LazyText() fmt.Stringer {
 	return internal.NewLazyString(
 		func() string {
 			return res.Buffer().String()
