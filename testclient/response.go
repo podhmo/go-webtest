@@ -16,7 +16,7 @@ type Response interface {
 	Close()
 
 	Response() *http.Response
-	StatusCode() int
+	Code() int
 
 	Extractor
 }
@@ -83,9 +83,9 @@ func (res *ResponseAdapter) Buffer() *bytes.Buffer {
 	return bytes.NewBuffer(res.bytes)
 }
 
-// StatusCode :
-func (res *ResponseAdapter) StatusCode() int {
-	return res.Response().StatusCode
+// Code :
+func (res *ResponseAdapter) Code() int {
+	return res.Response().Code
 }
 
 // ParseJSONData :
