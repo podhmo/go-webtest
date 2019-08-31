@@ -168,6 +168,13 @@ func (c *Config) Copy() *Config {
 	}
 }
 
+// WithMethod set method
+func WithMethod(method string) func(*Config) {
+	return func(c *Config) {
+		c.Method = method
+	}
+}
+
 // WithBasePath set base path
 func WithBasePath(basePath string) func(*Config) {
 	return func(c *Config) {
