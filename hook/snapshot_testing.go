@@ -1,4 +1,4 @@
-package ex
+package hook
 
 import (
 	"net/http"
@@ -8,8 +8,8 @@ import (
 	"github.com/podhmo/go-webtest/snapshot"
 )
 
-// SnapshotTesting :
-func SnapshotTesting(want *interface{}, options ...func(sc *snapshot.Config)) func(*webtest.Config) {
+// GetExpectedDataFromSnapshot :
+func GetExpectedDataFromSnapshot(want *interface{}, options ...func(sc *snapshot.Config)) func(*webtest.Config) {
 	return func(c *webtest.Config) {
 		c.Middlewares = append(c.Middlewares, NewMiddleware(
 			func(

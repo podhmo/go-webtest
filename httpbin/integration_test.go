@@ -4,9 +4,9 @@ import (
 	"testing"
 
 	webtest "github.com/podhmo/go-webtest"
+	"github.com/podhmo/go-webtest/hook"
 	"github.com/podhmo/go-webtest/httpbin/httpbintest"
 	"github.com/podhmo/go-webtest/jsonequal"
-	"github.com/podhmo/go-webtest/ex"
 	"github.com/podhmo/noerror"
 )
 
@@ -37,7 +37,7 @@ func TestIt(t *testing.T) {
 	t.Run("with middlewares", func(t *testing.T) {
 		t.Run("200, status check", func(t *testing.T) {
 			client := client.Bind(
-				ex.ExpectCode(200),
+				hook.ExpectCode(200),
 			)
 			got, err, teardown := client.Do(t, "/status/200")
 			noerror.Must(t, err)
@@ -55,7 +55,7 @@ func TestIt(t *testing.T) {
 			var want interface{}
 
 			client := client.Bind(
-				ex.SnapshotTesting(&want),
+				hook.GetExpectedDataFromSnapshot(&want),
 			)
 
 			cases := []struct {
