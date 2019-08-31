@@ -27,7 +27,8 @@ type Extractor interface {
 	JSONData() interface{}
 
 	Body() []byte
-	LazyBodyString() fmt.Stringer
+	Text() string
+	LazyText() fmt.Stringer
 }
 
 // NewResponseAdapter :
@@ -108,8 +109,13 @@ func (res *ResponseAdapter) Body() []byte {
 	return res.Buffer().Bytes()
 }
 
-// LazyBodyString :
-func (res *ResponseAdapter) LazyBodyString() fmt.Stringer {
+// Text :
+func (res *ResponseAdapter) Text() []byte {
+	return res.Buffer().Bytes()
+}
+
+// LazyText :
+func (res *ResponseAdapter) LazyText() fmt.Stringer {
 	return internal.NewLazyString(
 		func() string {
 			return res.Buffer().String()

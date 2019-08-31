@@ -19,7 +19,7 @@ func TestIt(t *testing.T) {
 		got, err, teardown := client.Do(t, "/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.Code(), err),
-			"response: ", got.LazyBodyString(), // add more contextual information?
+			"response: ", got.LazyText(), // add more contextual information?
 		)
 		defer teardown()
 
@@ -94,7 +94,7 @@ func TestUnit(t *testing.T) {
 		got, err, teardown := client.Do(t, "/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.Code(), err),
-			"response: ", got.LazyBodyString(), // add more contextual information?
+			"response: ", got.LazyText(), // add more contextual information?
 		)
 		defer teardown()
 

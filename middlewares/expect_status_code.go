@@ -34,6 +34,6 @@ func (err *statusError) Error() string {
 		"status code, expected %d, but actual %d\n response: %s",
 		err.code,
 		err.response.Code(),
-		err.response.LazyBodyString(),
+		err.response.LazyText(),
 	)
 }
