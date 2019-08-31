@@ -55,7 +55,7 @@ func TestIt(t *testing.T) {
 			var want interface{}
 
 			client := client.Bind(
-				hook.SnapshotTesting(&want),
+				hook.GetExpectedDataFromSnapshot(&want),
 			)
 
 			cases := []struct {
