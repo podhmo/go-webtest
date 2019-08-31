@@ -86,7 +86,7 @@ func (res *ResponseAdapter) Buffer() *bytes.Buffer {
 
 // Code :
 func (res *ResponseAdapter) Code() int {
-	return res.Response().Code
+	return res.Response().StatusCode
 }
 
 // ParseJSONData :
@@ -110,8 +110,8 @@ func (res *ResponseAdapter) Body() []byte {
 }
 
 // Text :
-func (res *ResponseAdapter) Text() []byte {
-	return res.Buffer().Bytes()
+func (res *ResponseAdapter) Text() string {
+	return res.Buffer().String()
 }
 
 // LazyText :

@@ -34,7 +34,7 @@ func TestIt(t *testing.T) {
 		// todo: assertion db check
 	})
 
-	t.Run("with ex", func(t *testing.T) {
+	t.Run("with middlewares", func(t *testing.T) {
 		t.Run("200, status check", func(t *testing.T) {
 			client := client.Bind(
 				ex.ExpectCode(200),
