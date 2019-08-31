@@ -20,7 +20,7 @@ func (c *RecorderClient) Do(
 	req *http.Request,
 ) (Response, error, func()) {
 	var adapter *ResponseAdapter
-	var raw *http.Response
+	var res *http.Response
 	var once sync.Once
 
 	w := httptest.NewRecorder()
@@ -29,10 +29,10 @@ func (c *RecorderClient) Do(
 	adapter = NewResponseAdapter(
 		func() *http.Response {
 			once.Do(func() {
-				raw = w.Result()
-				adapter.AddTeardown(raw.Body.Close)
+				res = w.Result()
+				adapter.AddTeardown(res.Body.Close)
 			})
-			return raw
+			return res
 		},
 	)
 	return adapter, nil, adapter.Close
