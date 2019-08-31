@@ -11,16 +11,25 @@ import (
 
 // ServerClient :
 type ServerClient struct {
-	client   *http.Client
+	Client    *http.Client
+	Transport http.RoundTripper
+
 	Server   *httptest.Server
 	BasePath string // need?
 }
 
 // Do :
 func (c *ServerClient) Do(req *http.Request) (Response, error, func()) {
-	client := c.client
-	if c.client == nil {
+	client := c.Client
+	if c.Client == nil {
 		client = http.DefaultClient
+		// TODO: debug transport
+	}
+	if c.Transport != nil {
+		if client == http.DefaultClient {
+			client = &http.Client{}
+		}
+		client.Transport = c.Transport
 	}
 
 	var adapter *ResponseAdapter

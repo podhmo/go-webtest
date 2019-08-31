@@ -107,16 +107,17 @@ func (c *Client) communicate(
 
 // NewClientFromTestServer :
 func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Client {
-	config := NewConfig()
+	c := NewConfig()
 	for _, opt := range options {
-		opt(config)
+		opt(c)
 	}
 	return &Client{
 		Internal: &testclient.ServerClient{
-			Server:   ts,
-			BasePath: config.BasePath,
+			Server:    ts,
+			BasePath:  c.BasePath,
+			Transport: c.RoundTripper,
 		},
-		Config: config,
+		Config: c,
 	}
 }
 
@@ -142,6 +143,7 @@ type Config struct {
 
 	Transformers []func(*http.Request) // request transformers
 	Middlewares  []Middleware          // client middlewares
+	RoundTripper http.RoundTripper
 
 	body io.Reader // only once
 }
@@ -212,5 +214,12 @@ func WithJSON(body io.Reader) func(*Config) {
 func WithTransformer(transform func(*http.Request)) func(*Config) {
 	return func(c *Config) {
 		c.Transformers = append(c.Transformers, transform)
+	}
+}
+
+// WithRoundTripper adds request transformer
+func WithRoundTripper(roundTripper http.RoundTripper) func(*Config) {
+	return func(c *Config) {
+		c.RoundTripper = roundTripper
 	}
 }
