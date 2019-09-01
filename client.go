@@ -173,15 +173,6 @@ type Config struct {
 	Middlewares  []Middleware          // client middlewares
 }
 
-// RoundTripperDecorator :
-type RoundTripperDecorator = testclient.RoundTripperDecorator
-
-// RoundTripperDecorateFunc :
-type RoundTripperDecorateFunc = testclient.RoundTripperDecorateFunc
-
-// NewDebugRoundTripper :
-var NewDebugRoundTripper = testclient.NewDebugRoundTripper
-
 // NewConfig :
 func NewConfig() *Config {
 	return &Config{
@@ -253,7 +244,7 @@ func WithTransformer(transform func(*http.Request)) func(*Config) {
 }
 
 // WithRoundTripperDecorator with client side middleware for roundTripper
-func WithRoundTripperDecorator(decorator RoundTripperDecorator) func(*Config) {
+func WithRoundTripperDecorator(decorator testclient.RoundTripperDecorator) func(*Config) {
 	return func(c *Config) {
 		c.ClientConfig.Decorator = decorator
 	}
