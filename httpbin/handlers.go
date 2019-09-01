@@ -1,6 +1,7 @@
 package httpbin
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -13,6 +14,21 @@ func WriteError(w http.ResponseWriter, error string, code int) {
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.WriteHeader(code)
 	fmt.Fprintf(w, `{"message": %q}`, error)
+}
+
+// Get : /get
+func Get(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	encoder := json.NewEncoder(w)
+	d := map[string]interface{}{
+		"args":    r.URL.Query(),
+		"headers": r.Header,
+		"url":     r.URL.String(),
+	}
+
+	if err := encoder.Encode(d); err != nil {
+		panic(err)
+	}
 }
 
 // Status : /status/{status}
