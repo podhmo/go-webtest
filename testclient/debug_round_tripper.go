@@ -1,10 +1,11 @@
-package webtest
+package testclient
 
 import (
 	"bufio"
 	"bytes"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -46,6 +47,16 @@ type DebugRoundTripper struct {
 
 	Writer    io.Writer
 	Transport http.RoundTripper
+}
+
+// Wrap :
+func (d *DebugRoundTripper) Wrap(transport http.RoundTripper) http.RoundTripper {
+	new := *d
+	if new.Transport != nil {
+		log.Printf("!! %t.Transport is not nil, overwrite original one", d)
+	}
+	new.Transport = transport
+	return &new
 }
 
 // transport :
