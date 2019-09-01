@@ -4,7 +4,7 @@ test:
 	go test ./...
 
 lint:
-	golangci-lint run -v #--enable-all
+	golangci-lint run # -v --enable-all
 
 # example (for testing)
 httpbin:
