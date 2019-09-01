@@ -212,6 +212,13 @@ func WithBasePath(basePath string) func(*Config) {
 	}
 }
 
+// WithQuery :
+func WithQuery(query url.Values) func(*Config) {
+	return func(c *Config) {
+		c.ClientConfig.Query = query
+	}
+}
+
 // WithForm setup as send form-data request
 func WithForm(data url.Values) func(*Config) {
 	return func(c *Config) {
