@@ -123,7 +123,7 @@ func TestIt(t *testing.T) {
 			t.Run(fmt.Sprintf("%d", c.code), func(t *testing.T) {
 				webtest.AssertWith(t, c.assertion).
 					Try(client.GET(t, "/auth/basic-auth/user/pass",
-						webtest.WithTransformer(func(req *http.Request) {
+						webtest.WithModifyRequest(func(req *http.Request) {
 							req.SetBasicAuth(c.user, c.pass)
 						}),
 					))

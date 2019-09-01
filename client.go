@@ -118,8 +118,8 @@ func (c *Client) communicate(
 	req *http.Request,
 	config *Config,
 ) (Response, error, func()) {
-	for _, transform := range config.Transformers {
-		transform(req)
+	for _, modifyRequest := range config.ModifyRequests {
+		modifyRequest(req)
 	}
 
 	doRequet := func(req *http.Request) (Response, error, func()) {
@@ -183,8 +183,8 @@ type Config struct {
 	Method       string
 	ClientConfig *testclient.Config
 
-	Transformers []func(*http.Request) // request transformers
-	Middlewares  []Middleware          // client middlewares
+	ModifyRequests []func(*http.Request) // request modifyRequests
+	Middlewares    []Middleware          // client middlewares
 }
 
 // NewConfig :
@@ -198,9 +198,9 @@ func NewConfig() *Config {
 func (c *Config) Copy() *Config {
 	return &Config{
 		BasePath: c.BasePath,
-		Transformers: append(
-			make([]func(*http.Request), 0, len(c.Transformers)),
-			c.Transformers...,
+		ModifyRequests: append(
+			make([]func(*http.Request), 0, len(c.ModifyRequests)),
+			c.ModifyRequests...,
 		),
 		Middlewares: append(
 			make([]Middleware, 0, len(c.Middlewares)),
@@ -231,7 +231,7 @@ func WithForm(data url.Values) func(*Config) {
 			panic("body is already set, enable to set body only once") // xxx
 		}
 		c.ClientConfig.Body = strings.NewReader(data.Encode())
-		c.Transformers = append(c.Transformers, func(req *http.Request) {
+		c.ModifyRequests = append(c.ModifyRequests, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		})
 	}
@@ -244,16 +244,16 @@ func WithJSON(body io.Reader) func(*Config) {
 			panic("body is already set, enable to set body only once") // xxx
 		}
 		c.ClientConfig.Body = body
-		c.Transformers = append(c.Transformers, func(req *http.Request) {
+		c.ModifyRequests = append(c.ModifyRequests, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/json")
 		})
 	}
 }
 
-// WithTransformer adds request transformer
-func WithTransformer(transform func(*http.Request)) func(*Config) {
+// WithModifyRequest adds request modifyRequest
+func WithModifyRequest(modifyRequest func(*http.Request)) func(*Config) {
 	return func(c *Config) {
-		c.Transformers = append(c.Transformers, transform)
+		c.ModifyRequests = append(c.ModifyRequests, modifyRequest)
 	}
 }
 
