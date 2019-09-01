@@ -49,11 +49,11 @@ type DebugRoundTripper struct {
 	Transport http.RoundTripper
 }
 
-// Wrap :
-func (d *DebugRoundTripper) Wrap(transport http.RoundTripper) http.RoundTripper {
+// Decorate :
+func (d *DebugRoundTripper) Decorate(transport http.RoundTripper) RoundTripperDecorator {
 	new := *d
 	if new.Transport != nil {
-		log.Printf("!! %t.Transport is not nil, overwrite original one", d)
+		log.Printf("!! %T.Transport is not nil, overwrite original one", d)
 	}
 	new.Transport = transport
 	return &new

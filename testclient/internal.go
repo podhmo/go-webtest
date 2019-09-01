@@ -7,16 +7,11 @@ import (
 )
 
 var (
-	defaultTransport      roundTripperWrapper
+	defaultTransport      RoundTripperDecorator
 	defaultInternalClient *http.Client
 )
 
 // TODO: logging interface
-
-type roundTripperWrapper interface {
-	http.RoundTripper
-	Wrap(inner http.RoundTripper) http.RoundTripper
-}
 
 func init() {
 	if os.Getenv("DEBUG") == "" {
@@ -25,7 +20,7 @@ func init() {
 	} else {
 		copied := *http.DefaultClient
 		defaultTransport = &DebugRoundTripper{}
-		copied.Transport = defaultTransport.Wrap(copied.Transport)
+		copied.Transport = defaultTransport.Decorate(copied.Transport)
 		defaultInternalClient = &copied
 		log.Println("builtin DebugRoundTripper is activated")
 	}
@@ -43,21 +38,21 @@ func getInternalClientWithTransport(client *http.Client, transport http.RoundTri
 			copied.Transport = transport
 			return &copied
 		}
-		copied.Transport = getWrappedTransport(copied.Transport, transport)
+		copied.Transport = getDecoratepedTransport(copied.Transport, transport)
 		return &copied
 	}
 	return client
 }
 
-func getWrappedTransport(original, transport http.RoundTripper) http.RoundTripper {
+func getDecoratepedTransport(original, transport http.RoundTripper) http.RoundTripper {
 	if transport == nil {
 		transport = defaultTransport // if not debug, defaultTransport is nil
 	}
 	if transport == nil {
 		return original
 	}
-	if t, ok := transport.(roundTripperWrapper); ok {
-		return t.Wrap(original)
+	if t, ok := transport.(RoundTripperDecorator); ok {
+		return t.Decorate(original)
 	}
 	log.Printf("client.Transport is already set, config.Transport[%T] is ignored", transport)
 	return original

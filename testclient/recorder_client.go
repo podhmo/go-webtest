@@ -32,7 +32,7 @@ func (c *RecorderClient) Do(
 	var adapter *ResponseAdapter
 	var once sync.Once
 
-	transport := getWrappedTransport(c, c.Transport)
+	transport := getDecoratepedTransport(c, c.Transport)
 	res, err := transport.RoundTrip(req)
 
 	adapter = NewResponseAdapter(
