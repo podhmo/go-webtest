@@ -15,8 +15,11 @@ import (
 type Response interface {
 	Close()
 
-	Response() *http.Response
 	Code() int
+	Header() http.Header
+	Request() *http.Request
+
+	Raw() *http.Response
 
 	Extractor
 }
@@ -49,8 +52,8 @@ type ResponseAdapter struct {
 	teardowns []func() error
 }
 
-// Response :
-func (res *ResponseAdapter) Response() *http.Response {
+// Raw :
+func (res *ResponseAdapter) Raw() *http.Response {
 	return res.GetResponse()
 }
 
@@ -76,7 +79,7 @@ func (res *ResponseAdapter) AddTeardown(fn func() error) {
 func (res *ResponseAdapter) Buffer() *bytes.Buffer {
 	res.bOnce.Do(func() {
 		var b bytes.Buffer
-		if _, err := io.Copy(&b, res.Response().Body); err != nil {
+		if _, err := io.Copy(&b, res.Raw().Body); err != nil {
 			panic(err) // xxx
 		}
 		res.bytes = b.Bytes()
@@ -86,7 +89,17 @@ func (res *ResponseAdapter) Buffer() *bytes.Buffer {
 
 // Code :
 func (res *ResponseAdapter) Code() int {
-	return res.Response().StatusCode
+	return res.Raw().StatusCode
+}
+
+// Header :
+func (res *ResponseAdapter) Header() http.Header {
+	return res.Raw().Header
+}
+
+// Request :
+func (res *ResponseAdapter) Request() *http.Request {
+	return res.Raw().Request
 }
 
 // ParseJSONData :
