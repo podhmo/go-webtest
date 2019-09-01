@@ -48,5 +48,19 @@ func (c *ServerClient) NewRequest(
 	config *Config,
 ) (*http.Request, error) {
 	url := internal.URLJoin(c.Server.URL, internal.URLJoin(config.BasePath, path))
-	return http.NewRequest(method, url, config.Body)
+	req, err := http.NewRequest(method, url, config.Body)
+	if err != nil {
+		return req, err
+	}
+
+	if config.Query != nil {
+		q := config.Query
+		for k, vs := range req.URL.Query() {
+			for _, v := range vs {
+				q.Add(k, v)
+			}
+		}
+		req.URL.RawQuery = q.Encode()
+	}
+	return req, nil
 }
