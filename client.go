@@ -24,7 +24,7 @@ type Middleware = func(
 // Internal :
 type Internal interface {
 	Do(req *http.Request, clientConfig *testclient.Config) (Response, error, func())
-	NewRequest(method string, path string, body io.Reader) (*http.Request, error)
+	NewRequest(method string, path string, clientConfig *testclient.Config) (*http.Request, error)
 }
 
 // Client :
@@ -53,18 +53,16 @@ func (c *Client) Bind(options ...func(*Config)) *Client {
 // Do :
 func (c *Client) Do(
 	t testing.TB,
+	method string,
 	path string,
 	options ...func(*Config),
 ) (Response, error, func()) {
 	config := c.Config.Copy()
-
 	for _, opt := range options {
 		opt(config)
 	}
 
-	method := config.Method
-	body := config.body
-	req, err := c.Internal.NewRequest(method, path, body)
+	req, err := c.Internal.NewRequest(method, path, config.ClientConfig)
 	if err != nil {
 		return nil, err, nil
 	}
@@ -115,8 +113,7 @@ func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Cli
 	}
 	return &Client{
 		Internal: &testclient.ServerClient{
-			Server:   ts,
-			BasePath: c.BasePath,
+			Server: ts,
 		},
 		Config: c,
 	}
@@ -130,8 +127,7 @@ func NewClientFromHandler(handler http.Handler, options ...func(*Config)) *Clien
 	}
 	return &Client{
 		Internal: &testclient.RecorderClient{
-			Handler:  handler,
-			BasePath: c.BasePath,
+			Handler: handler,
 		},
 		Config: c,
 	}
@@ -161,7 +157,6 @@ var NewDebugRoundTripper = testclient.NewDebugRoundTripper
 // NewConfig :
 func NewConfig() *Config {
 	return &Config{
-		Method:       "GET",
 		ClientConfig: &testclient.Config{},
 	}
 }
@@ -182,17 +177,10 @@ func (c *Config) Copy() *Config {
 	}
 }
 
-// WithMethod set method
-func WithMethod(method string) func(*Config) {
-	return func(c *Config) {
-		c.Method = method
-	}
-}
-
 // WithBasePath set base path
 func WithBasePath(basePath string) func(*Config) {
 	return func(c *Config) {
-		c.BasePath = basePath
+		c.ClientConfig.BasePath = basePath
 	}
 }
 

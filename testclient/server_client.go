@@ -1,7 +1,6 @@
 package testclient
 
 import (
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -11,9 +10,7 @@ import (
 
 // ServerClient :
 type ServerClient struct {
-	Server   *httptest.Server
-	BasePath string // need?
-
+	Server *httptest.Server
 	Client *http.Client
 }
 
@@ -48,8 +45,8 @@ func (c *ServerClient) Do(
 func (c *ServerClient) NewRequest(
 	method string,
 	path string,
-	body io.Reader,
+	config *Config,
 ) (*http.Request, error) {
-	url := internal.URLJoin(c.Server.URL, internal.URLJoin(c.BasePath, path))
-	return http.NewRequest(method, url, body)
+	url := internal.URLJoin(c.Server.URL, internal.URLJoin(config.BasePath, path))
+	return http.NewRequest(method, url, config.Body)
 }
