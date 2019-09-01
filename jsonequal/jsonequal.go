@@ -139,7 +139,12 @@ func defaultFail(
 	lb []byte,
 	rb []byte,
 ) error {
+	ls, rs := string(lb), string(rb)
+	if ls == rs {
+		msg := "not equal json\nleft (%[1]T):\n	%[3]s\nright (%[2]T):\n	%[4]s"
+		return fmt.Errorf(msg, left, right, ls, rs)
+	}
 	// todo : more redable expression
-	msg := "not equal json\nleft:\n	%s\nright:\n	%s"
-	return fmt.Errorf(msg, string(lb), string(rb))
+	msg := "not equal json\nleft:\n	%[3]s\nright:\n	%[4]s"
+	return fmt.Errorf(msg, left, right, ls, rs)
 }
