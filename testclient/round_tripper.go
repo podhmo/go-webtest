@@ -5,6 +5,14 @@ import (
 	"net/http"
 )
 
+// RoundTripperDecorateFunc :
+type RoundTripperDecorateFunc func(http.RoundTripper, *http.Request) (*http.Response, error)
+
+// Decorate :
+func (f RoundTripperDecorateFunc) Decorate(inner http.RoundTripper) RoundTripperDecorator {
+	return FuncRoundTripper{Fn: f}.Decorate(inner)
+}
+
 // RoundTripperDecorator :
 type RoundTripperDecorator interface {
 	http.RoundTripper
@@ -13,7 +21,7 @@ type RoundTripperDecorator interface {
 
 // FuncRoundTripper :
 type FuncRoundTripper struct {
-	Fn           func(http.RoundTripper, *http.Request) (*http.Response, error)
+	Fn           RoundTripperDecorateFunc
 	RoundTripper http.RoundTripper
 }
 

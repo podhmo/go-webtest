@@ -15,12 +15,12 @@ type ServerClient struct {
 	BasePath string // need?
 
 	Client    *http.Client
-	Transport http.RoundTripper
+	Decorator RoundTripperDecorator
 }
 
 // Do :
 func (c *ServerClient) Do(req *http.Request) (Response, error, func()) {
-	client := getInternalClientWithTransport(c.Client, c.Transport)
+	client := getInternalClient(c.Client, c.Decorator)
 
 	var adapter *ResponseAdapter
 	var raw *http.Response

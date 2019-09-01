@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	defaultTransport      RoundTripperDecorator
+	defaultDecorator      RoundTripperDecorator
 	defaultInternalClient *http.Client
 )
 
@@ -19,41 +19,34 @@ func init() {
 		return
 	} else {
 		copied := *http.DefaultClient
-		defaultTransport = NewDebugRoundTripper()
-		copied.Transport = defaultTransport.Decorate(copied.Transport)
+		defaultDecorator = NewDebugRoundTripper()
+		copied.Transport = defaultDecorator.Decorate(copied.Transport)
 		defaultInternalClient = &copied
 		log.Println("builtin DebugRoundTripper is activated")
 	}
 }
 
-func getInternalClientWithTransport(client *http.Client, transport http.RoundTripper) *http.Client {
+func getInternalClient(client *http.Client, decorator RoundTripperDecorator) *http.Client {
 	if client == nil {
 		client = defaultInternalClient
 	}
 
-	if transport != nil {
+	if decorator != nil {
 		// shallow copy
 		copied := *client
-		if copied.Transport == nil {
-			copied.Transport = transport
-			return &copied
-		}
-		copied.Transport = getDecoratepedTransport(copied.Transport, transport)
+		copied.Transport = getDecoratepedTransport(copied.Transport, decorator)
 		return &copied
 	}
 	return client
 }
 
-func getDecoratepedTransport(original, transport http.RoundTripper) http.RoundTripper {
-	if transport == nil {
-		transport = defaultTransport // if not debug, defaultTransport is nil
+func getDecoratepedTransport(original http.RoundTripper, decorator RoundTripperDecorator) http.RoundTripper {
+	if decorator == nil {
+		// if not debug, defaultDecorator is nil
+		if defaultDecorator == nil {
+			return original
+		}
+		decorator = defaultDecorator
 	}
-	if transport == nil {
-		return original
-	}
-	if t, ok := transport.(RoundTripperDecorator); ok {
-		return t.Decorate(original)
-	}
-	log.Printf("client.Transport is already set, config.Transport[%T] is ignored", transport)
-	return original
+	return decorator.Decorate(original)
 }
