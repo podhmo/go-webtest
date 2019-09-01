@@ -51,3 +51,21 @@ func Status(w http.ResponseWriter, r *http.Request) {
 	message := http.StatusText(code)
 	fmt.Fprintf(w, `{"status": %d, "message": %q}`, code, message)
 }
+
+// BasicAuth : /basic-auth/{user}/{passwd} Prompts the user for authorization using HTTP Basic Auth.
+func BasicAuth(w http.ResponseWriter, req *http.Request) {
+	nodes := strings.Split(strings.TrimSuffix(req.URL.Path, "/"), "/")
+	basicAuthUser := nodes[len(nodes)-2]
+	basicAuthPassword := nodes[len(nodes)-1]
+
+	user, pass, ok := req.BasicAuth()
+	if !ok || user != basicAuthUser || pass != basicAuthPassword {
+		w.Header().Add("WWW-Authenticate", `Basic realm="Fake Realm"`)
+		w.WriteHeader(http.StatusUnauthorized)
+		fmt.Fprintf(w, `{"authenticated": false}`)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json; charset=utf-8")
+	fmt.Fprintf(w, `{"authenticated": true, "user": %q}`, user)
+}

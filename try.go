@@ -5,7 +5,7 @@ import (
 )
 
 // AssertWith :
-func AssertWith(t testing.TB, assertion func(got Response)) *TryWithAssertion {
+func AssertWith(t *testing.T, assertion func(t *testing.T, got Response)) *TryWithAssertion {
 	return &TryWithAssertion{
 		t:         t,
 		assertion: assertion,
@@ -14,8 +14,8 @@ func AssertWith(t testing.TB, assertion func(got Response)) *TryWithAssertion {
 
 // TryWithAssertion :
 type TryWithAssertion struct {
-	t         testing.TB
-	assertion func(Response)
+	t         *testing.T
+	assertion func(*testing.T, Response)
 }
 
 // Try :
@@ -24,5 +24,5 @@ func (a *TryWithAssertion) Try(got Response, err error, teardown func()) {
 		a.t.Fatalf("try: %+v", err)
 	}
 	defer teardown()
-	a.assertion(got)
+	a.assertion(a.t, got)
 }

@@ -2,6 +2,7 @@ package httpbin_test
 
 import (
 	"fmt"
+	"net/http"
 	"net/url"
 	"testing"
 
@@ -85,6 +86,49 @@ func TestIt(t *testing.T) {
 				})
 			}
 		})
+	})
+
+	t.Run("auth", func(t *testing.T) {
+		cases := []struct {
+			user      string
+			pass      string
+			code      int
+			assertion func(*testing.T, webtest.Response)
+		}{
+			{
+				code: 200,
+				user: "user", pass: "pass",
+				assertion: func(t *testing.T, got webtest.Response) {
+					noerror.Should(t,
+						jsonequal.ShouldBeSame(
+							jsonequal.FromString(`{"authenticated": true, "user": "user"}`),
+							jsonequal.From(got.JSONData()),
+						),
+					)
+				},
+			},
+			{
+				code: 401,
+				user: "user", pass: "another",
+				assertion: func(t *testing.T, got webtest.Response) {
+					noerror.Should(t,
+						noerror.Equal(401).Actual(got.Code()),
+					)
+				},
+			},
+		}
+
+		for _, c := range cases {
+			c := c
+			t.Run(fmt.Sprintf("%d", c.code), func(t *testing.T) {
+				webtest.AssertWith(t, c.assertion).
+					Try(client.GET(t, "/auth/basic-auth/user/pass",
+						webtest.WithTransformer(func(req *http.Request) {
+							req.SetBasicAuth(c.user, c.pass)
+						}),
+					))
+			})
+		}
 	})
 }
 
