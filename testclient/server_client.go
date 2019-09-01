@@ -9,25 +9,18 @@ import (
 	"github.com/podhmo/go-webtest/internal"
 )
 
-type roundTripperWrapper struct {
-	http.RoundTripper
-	Wrap func(inner http.RoundTripper) http.RoundTripper
-}
-
-// TODO: logging interface
-
 // ServerClient :
 type ServerClient struct {
-	Client    *http.Client
-	Transport http.RoundTripper
-
 	Server   *httptest.Server
 	BasePath string // need?
+
+	Client    *http.Client
+	Transport http.RoundTripper
 }
 
 // Do :
 func (c *ServerClient) Do(req *http.Request) (Response, error, func()) {
-	client := GetInternalClientWith(c.Client, c.Transport)
+	client := getInternalClientWithTransport(c.Client, c.Transport)
 
 	var adapter *ResponseAdapter
 	var raw *http.Response

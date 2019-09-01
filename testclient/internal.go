@@ -7,8 +7,16 @@ import (
 )
 
 var (
+	defaultTransport      roundTripperWrapper
 	defaultInternalClient *http.Client
 )
+
+// TODO: logging interface
+
+type roundTripperWrapper interface {
+	http.RoundTripper
+	Wrap(inner http.RoundTripper) http.RoundTripper
+}
 
 func init() {
 	if os.Getenv("DEBUG") == "" {
@@ -16,14 +24,14 @@ func init() {
 		return
 	} else {
 		copied := *http.DefaultClient
-		copied.Transport = &DebugRoundTripper{}
+		defaultTransport = &DebugRoundTripper{}
+		copied.Transport = defaultTransport.Wrap(copied.Transport)
 		defaultInternalClient = &copied
 		log.Println("builtin DebugRoundTripper is activated")
 	}
 }
 
-// GetInternalClientWith :
-func GetInternalClientWith(client *http.Client, transport http.RoundTripper) *http.Client {
+func getInternalClientWithTransport(client *http.Client, transport http.RoundTripper) *http.Client {
 	if client == nil {
 		client = defaultInternalClient
 	}
@@ -35,13 +43,22 @@ func GetInternalClientWith(client *http.Client, transport http.RoundTripper) *ht
 			copied.Transport = transport
 			return &copied
 		}
-		switch t := transport.(type) {
-		case roundTripperWrapper:
-			copied.Transport = t.Wrap(copied.Transport)
-			return &copied
-		default:
-			log.Printf("client.Transport is already set, config.Transport[%T] is ignored", transport)
-		}
+		copied.Transport = getWrappedTransport(copied.Transport, transport)
+		return &copied
 	}
 	return client
+}
+
+func getWrappedTransport(original, transport http.RoundTripper) http.RoundTripper {
+	if transport == nil {
+		transport = defaultTransport // if not debug, defaultTransport is nil
+	}
+	if transport == nil {
+		return original
+	}
+	if t, ok := transport.(roundTripperWrapper); ok {
+		return t.Wrap(original)
+	}
+	log.Printf("client.Transport is already set, config.Transport[%T] is ignored", transport)
+	return original
 }
