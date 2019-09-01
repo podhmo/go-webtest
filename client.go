@@ -171,8 +171,6 @@ type Config struct {
 
 	Transformers []func(*http.Request) // request transformers
 	Middlewares  []Middleware          // client middlewares
-
-	body io.Reader // only once
 }
 
 // RoundTripperDecorator :
@@ -217,10 +215,10 @@ func WithBasePath(basePath string) func(*Config) {
 // WithForm setup as send form-data request
 func WithForm(data url.Values) func(*Config) {
 	return func(c *Config) {
-		if c.body != nil {
+		if c.ClientConfig.Body != nil {
 			panic("body is already set, enable to set body only once") // xxx
 		}
-		c.body = strings.NewReader(data.Encode())
+		c.ClientConfig.Body = strings.NewReader(data.Encode())
 		c.Transformers = append(c.Transformers, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		})
@@ -230,10 +228,10 @@ func WithForm(data url.Values) func(*Config) {
 // WithJSON setup as json request
 func WithJSON(body io.Reader) func(*Config) {
 	return func(c *Config) {
-		if c.body != nil {
+		if c.ClientConfig.Body != nil {
 			panic("body is already set, enable to set body only once") // xxx
 		}
-		c.body = body
+		c.ClientConfig.Body = body
 		c.Transformers = append(c.Transformers, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/json")
 		})
