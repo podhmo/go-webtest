@@ -8,7 +8,7 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
-	"github.com/podhmo/go-webtest/replace"
+	"github.com/podhmo/go-webtest/snapshot/replace"
 )
 
 // Extra is extra data
