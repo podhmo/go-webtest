@@ -142,8 +142,8 @@ func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Cli
 		opt(c)
 	}
 	return &Client{
-		Internal: &testclient.ServerClient{
-			Server: ts,
+		Internal: &testclient.RealClient{
+			URL: ts.URL,
 		},
 		Config: c,
 	}
@@ -156,8 +156,22 @@ func NewClientFromHandler(handler http.Handler, options ...func(*Config)) *Clien
 		opt(c)
 	}
 	return &Client{
-		Internal: &testclient.RecorderClient{
+		Internal: &testclient.FakeClient{
 			Handler: handler,
+		},
+		Config: c,
+	}
+}
+
+// NewClientFromURL :
+func NewClientFromURL(url string, options ...func(*Config)) *Client {
+	c := NewConfig()
+	for _, opt := range options {
+		opt(c)
+	}
+	return &Client{
+		Internal: &testclient.RealClient{
+			URL: url,
 		},
 		Config: c,
 	}

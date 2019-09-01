@@ -2,20 +2,19 @@ package testclient
 
 import (
 	"net/http"
-	"net/http/httptest"
 	"sync"
 
 	"github.com/podhmo/go-webtest/internal"
 )
 
-// ServerClient :
-type ServerClient struct {
-	Server *httptest.Server
+// RealClient :
+type RealClient struct {
+	URL    string
 	Client *http.Client
 }
 
 // Do :
-func (c *ServerClient) Do(
+func (c *RealClient) Do(
 	req *http.Request,
 	config *Config,
 ) (Response, error, func()) {
@@ -42,12 +41,12 @@ func (c *ServerClient) Do(
 }
 
 // NewRequest :
-func (c *ServerClient) NewRequest(
+func (c *RealClient) NewRequest(
 	method string,
 	path string,
 	config *Config,
 ) (*http.Request, error) {
-	url := internal.URLJoin(c.Server.URL, internal.URLJoin(config.BasePath, path))
+	url := internal.URLJoin(c.URL, internal.URLJoin(config.BasePath, path))
 	req, err := http.NewRequest(method, url, config.Body)
 	if err != nil {
 		return req, err
