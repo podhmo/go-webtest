@@ -1,7 +1,12 @@
 package testclient
 
+import "io"
+
 // Config :
 type Config struct {
+	BasePath string
+	Body     io.Reader
+
 	Decorator RoundTripperDecorator
 }
 

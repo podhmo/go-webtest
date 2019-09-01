@@ -1,7 +1,6 @@
 package testclient
 
 import (
-	"io"
 	"net/http"
 	"net/http/httptest"
 	"sync"
@@ -11,8 +10,7 @@ import (
 
 // RecorderClient :
 type RecorderClient struct {
-	BasePath string
-	Handler  http.Handler
+	Handler http.Handler
 }
 
 // RoundTrip :
@@ -49,8 +47,8 @@ func (c *RecorderClient) Do(
 func (c *RecorderClient) NewRequest(
 	method string,
 	path string,
-	body io.Reader,
+	config *Config,
 ) (*http.Request, error) {
-	url := internal.URLJoin(c.BasePath, path)
-	return httptest.NewRequest(method, url, body), nil
+	url := internal.URLJoin(config.BasePath, path)
+	return httptest.NewRequest(method, url, config.Body), nil
 }

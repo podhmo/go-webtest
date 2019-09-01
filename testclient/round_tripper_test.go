@@ -12,7 +12,7 @@ import (
 
 func TestRoundTripperDecorator(t *testing.T) {
 	handler := func(w http.ResponseWriter, req *http.Request) {
-		fmt.Fprintf(w, req.URL.Query().Encode())
+		fmt.Fprint(w, req.URL.Query().Encode())
 	}
 
 	cases := []struct {
@@ -76,7 +76,9 @@ func TestRoundTripperDecorator(t *testing.T) {
 			}
 
 			var b strings.Builder
-			io.Copy(&b, res.Body)
+			if _, err := io.Copy(&b, res.Body); err != nil {
+				t.Fatal(err)
+			}
 			got := b.String()
 			if !reflect.DeepEqual(got, c.want) {
 				t.Errorf("want %s, but %s", c.want, got)
