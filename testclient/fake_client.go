@@ -8,13 +8,13 @@ import (
 	"github.com/podhmo/go-webtest/internal"
 )
 
-// RecorderClient :
-type RecorderClient struct {
+// FakeClient :
+type FakeClient struct {
 	Handler http.Handler
 }
 
 // RoundTrip :
-func (c *RecorderClient) RoundTrip(req *http.Request) (*http.Response, error) {
+func (c *FakeClient) RoundTrip(req *http.Request) (*http.Response, error) {
 	// TODO: accessing headder information
 	w := httptest.NewRecorder()
 	c.Handler.ServeHTTP(w, req)
@@ -22,7 +22,7 @@ func (c *RecorderClient) RoundTrip(req *http.Request) (*http.Response, error) {
 }
 
 // Do :
-func (c *RecorderClient) Do(
+func (c *FakeClient) Do(
 	req *http.Request,
 	config *Config,
 ) (Response, error, func()) {
@@ -44,7 +44,7 @@ func (c *RecorderClient) Do(
 }
 
 // NewRequest :
-func (c *RecorderClient) NewRequest(
+func (c *FakeClient) NewRequest(
 	method string,
 	path string,
 	config *Config,

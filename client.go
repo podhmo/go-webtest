@@ -156,7 +156,7 @@ func NewClientFromHandler(handler http.Handler, options ...func(*Config)) *Clien
 		opt(c)
 	}
 	return &Client{
-		Internal: &testclient.RecorderClient{
+		Internal: &testclient.FakeClient{
 			Handler: handler,
 		},
 		Config: c,
