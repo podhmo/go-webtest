@@ -11,17 +11,18 @@ import (
 
 // ServerClient :
 type ServerClient struct {
-	client   *http.Client
 	Server   *httptest.Server
 	BasePath string // need?
+
+	Client *http.Client
 }
 
 // Do :
-func (c *ServerClient) Do(req *http.Request) (Response, error, func()) {
-	client := c.client
-	if c.client == nil {
-		client = http.DefaultClient
-	}
+func (c *ServerClient) Do(
+	req *http.Request,
+	config *Config,
+) (Response, error, func()) {
+	client := getInternalClient(c.Client, config.Decorator)
 
 	var adapter *ResponseAdapter
 	var raw *http.Response

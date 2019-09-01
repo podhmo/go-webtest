@@ -11,31 +11,38 @@ import (
 
 // RecorderClient :
 type RecorderClient struct {
-	Handler  http.Handler
 	BasePath string
+	Handler  http.Handler
+}
+
+// RoundTrip :
+func (c *RecorderClient) RoundTrip(req *http.Request) (*http.Response, error) {
+	// TODO: accessing headder information
+	w := httptest.NewRecorder()
+	c.Handler.ServeHTTP(w, req)
+	return w.Result(), nil
 }
 
 // Do :
 func (c *RecorderClient) Do(
 	req *http.Request,
+	config *Config,
 ) (Response, error, func()) {
 	var adapter *ResponseAdapter
-	var raw *http.Response
 	var once sync.Once
 
-	w := httptest.NewRecorder()
-	c.Handler.ServeHTTP(w, req)
+	transport := getDecoratepedTransport(c, config.Decorator)
+	res, err := transport.RoundTrip(req)
 
 	adapter = NewResponseAdapter(
 		func() *http.Response {
 			once.Do(func() {
-				raw = w.Result()
-				adapter.AddTeardown(raw.Body.Close)
+				adapter.AddTeardown(res.Body.Close)
 			})
-			return raw
+			return res
 		},
 	)
-	return adapter, nil, adapter.Close
+	return adapter, err, adapter.Close
 }
 
 // NewRequest :
