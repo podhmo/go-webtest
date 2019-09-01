@@ -23,7 +23,7 @@ type Middleware = func(
 
 // Internal :
 type Internal interface {
-	Do(req *http.Request) (Response, error, func())
+	Do(req *http.Request, clientConfig *testclient.Config) (Response, error, func())
 	NewRequest(method string, path string, body io.Reader) (*http.Request, error)
 }
 
@@ -94,7 +94,9 @@ func (c *Client) communicate(
 		transform(req)
 	}
 
-	doRequet := c.Internal.Do
+	doRequet := func(req *http.Request) (Response, error, func()) {
+		return c.Internal.Do(req, config.ClientConfig)
+	}
 	for i := range config.Middlewares {
 		middleware := config.Middlewares[i]
 		inner := doRequet
@@ -113,9 +115,8 @@ func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Cli
 	}
 	return &Client{
 		Internal: &testclient.ServerClient{
-			Server:    ts,
-			BasePath:  c.BasePath,
-			Transport: c.RoundTripper,
+			Server:   ts,
+			BasePath: c.BasePath,
 		},
 		Config: c,
 	}
@@ -123,35 +124,45 @@ func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Cli
 
 // NewClientFromHandler :
 func NewClientFromHandler(handler http.Handler, options ...func(*Config)) *Client {
-	config := NewConfig()
+	c := NewConfig()
 	for _, opt := range options {
-		opt(config)
+		opt(c)
 	}
 	return &Client{
 		Internal: &testclient.RecorderClient{
 			Handler:  handler,
-			BasePath: config.BasePath,
+			BasePath: c.BasePath,
 		},
-		Config: config,
+		Config: c,
 	}
 }
 
 // Config :
 type Config struct {
-	BasePath string
-	Method   string
+	BasePath     string
+	Method       string
+	ClientConfig *testclient.Config
 
 	Transformers []func(*http.Request) // request transformers
 	Middlewares  []Middleware          // client middlewares
-	RoundTripper http.RoundTripper
 
 	body io.Reader // only once
 }
 
+// RoundTripperDecorator :
+type RoundTripperDecorator = testclient.RoundTripperDecorator
+
+// RoundTripperDecorateFunc :
+type RoundTripperDecorateFunc = testclient.RoundTripperDecorateFunc
+
+// NewDebugRoundTripper :
+var NewDebugRoundTripper = testclient.NewDebugRoundTripper
+
 // NewConfig :
 func NewConfig() *Config {
 	return &Config{
-		Method: "GET",
+		Method:       "GET",
+		ClientConfig: &testclient.Config{},
 	}
 }
 
@@ -167,6 +178,7 @@ func (c *Config) Copy() *Config {
 			make([]Middleware, 0, len(c.Middlewares)),
 			c.Middlewares...,
 		),
+		ClientConfig: c.ClientConfig.Copy(),
 	}
 }
 
@@ -217,9 +229,9 @@ func WithTransformer(transform func(*http.Request)) func(*Config) {
 	}
 }
 
-// WithRoundTripper adds request transformer
-func WithRoundTripper(roundTripper http.RoundTripper) func(*Config) {
+// WithRoundTripperDecorator with client side middleware for roundTripper
+func WithRoundTripperDecorator(decorator RoundTripperDecorator) func(*Config) {
 	return func(c *Config) {
-		c.RoundTripper = roundTripper
+		c.ClientConfig.Decorator = decorator
 	}
 }

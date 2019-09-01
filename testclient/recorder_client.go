@@ -11,10 +11,8 @@ import (
 
 // RecorderClient :
 type RecorderClient struct {
-	Handler  http.Handler
 	BasePath string
-
-	Decorator RoundTripperDecorator
+	Handler  http.Handler
 }
 
 // RoundTrip :
@@ -28,11 +26,12 @@ func (c *RecorderClient) RoundTrip(req *http.Request) (*http.Response, error) {
 // Do :
 func (c *RecorderClient) Do(
 	req *http.Request,
+	config *Config,
 ) (Response, error, func()) {
 	var adapter *ResponseAdapter
 	var once sync.Once
 
-	transport := getDecoratepedTransport(c, c.Decorator)
+	transport := getDecoratepedTransport(c, config.Decorator)
 	res, err := transport.RoundTrip(req)
 
 	adapter = NewResponseAdapter(

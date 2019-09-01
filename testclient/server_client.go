@@ -14,13 +14,15 @@ type ServerClient struct {
 	Server   *httptest.Server
 	BasePath string // need?
 
-	Client    *http.Client
-	Decorator RoundTripperDecorator
+	Client *http.Client
 }
 
 // Do :
-func (c *ServerClient) Do(req *http.Request) (Response, error, func()) {
-	client := getInternalClient(c.Client, c.Decorator)
+func (c *ServerClient) Do(
+	req *http.Request,
+	config *Config,
+) (Response, error, func()) {
+	client := getInternalClient(c.Client, config.Decorator)
 
 	var adapter *ResponseAdapter
 	var raw *http.Response
