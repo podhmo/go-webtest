@@ -19,7 +19,7 @@ func init() {
 		return
 	} else {
 		copied := *http.DefaultClient
-		defaultTransport = &DebugRoundTripper{}
+		defaultTransport = NewDebugRoundTripper()
 		copied.Transport = defaultTransport.Decorate(copied.Transport)
 		defaultInternalClient = &copied
 		log.Println("builtin DebugRoundTripper is activated")

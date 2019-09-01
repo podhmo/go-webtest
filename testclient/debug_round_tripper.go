@@ -5,7 +5,6 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -45,26 +44,7 @@ type DebugRoundTripper struct {
 	IgnoreDumpResponse bool
 	Quiet              bool
 
-	Writer    io.Writer
-	Transport http.RoundTripper
-}
-
-// Decorate :
-func (d *DebugRoundTripper) Decorate(transport http.RoundTripper) RoundTripperDecorator {
-	new := *d
-	if new.Transport != nil {
-		log.Printf("!! %T.Transport is not nil, overwrite original one", d)
-	}
-	new.Transport = transport
-	return &new
-}
-
-// transport :
-func (d *DebugRoundTripper) transport() http.RoundTripper {
-	if d.Transport != nil {
-		return d.Transport
-	}
-	return http.DefaultTransport
+	Writer io.Writer
 }
 
 // writer :
@@ -75,8 +55,8 @@ func (d *DebugRoundTripper) writer() io.Writer {
 	return &withPrefixWriter{Writer: os.Stderr, Prefix: "\t"}
 }
 
-// RoundTrip :
-func (t *DebugRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+// RoundTripWith :
+func (t *DebugRoundTripper) RoundTripWith(inner http.RoundTripper, req *http.Request) (resp *http.Response, err error) {
 	if !t.IgnoreDumpRequest {
 		b, err := httputil.DumpRequest(req, !t.Quiet)
 		if err != nil {
@@ -90,7 +70,7 @@ func (t *DebugRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, e
 		fmt.Fprintln(w, "\x1b[34m----------------------------------------\x1b[0m")
 	}
 
-	resp, err = t.transport().RoundTrip(req)
+	resp, err = inner.RoundTrip(req)
 	if err != nil {
 		return nil, err
 	}
@@ -108,4 +88,15 @@ func (t *DebugRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, e
 		fmt.Fprintln(w, "\x1b[32m----------------------------------------\x1b[0m")
 	}
 	return resp, nil
+}
+
+func (t *DebugRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
+	return t.RoundTripWith(http.DefaultTransport, req)
+}
+
+// NewDebugRoundTripper :
+func NewDebugRoundTripper() RoundTripperDecorator {
+	return FuncRoundTripper{
+		Fn: (&DebugRoundTripper{}).RoundTripWith,
+	}
 }
