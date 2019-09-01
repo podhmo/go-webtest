@@ -142,8 +142,8 @@ func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Cli
 		opt(c)
 	}
 	return &Client{
-		Internal: &testclient.ServerClient{
-			Server: ts,
+		Internal: &testclient.RealClient{
+			URL: ts.URL,
 		},
 		Config: c,
 	}
