@@ -163,6 +163,20 @@ func NewClientFromHandler(handler http.Handler, options ...func(*Config)) *Clien
 	}
 }
 
+// NewClientFromURL :
+func NewClientFromURL(url string, options ...func(*Config)) *Client {
+	c := NewConfig()
+	for _, opt := range options {
+		opt(c)
+	}
+	return &Client{
+		Internal: &testclient.RealClient{
+			URL: url,
+		},
+		Config: c,
+	}
+}
+
 // Config :
 type Config struct {
 	BasePath     string
