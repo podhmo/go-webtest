@@ -1,11 +1,15 @@
 package testclient
 
-import "io"
+import (
+	"io"
+	"net/url"
+)
 
 // Config :
 type Config struct {
 	BasePath string
 	Body     io.Reader
+	Query    url.Values
 
 	Decorator RoundTripperDecorator
 }

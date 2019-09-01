@@ -14,6 +14,7 @@ func Handler() http.Handler {
 // BindHandlers :
 func BindHandlers(mux *http.ServeMux) {
 	mux.HandleFunc("/status/", Status)
+	mux.HandleFunc("/get", Get)
 }
 
 func Run(port string, mux http.Handler) error {

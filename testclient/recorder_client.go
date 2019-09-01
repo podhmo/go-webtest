@@ -50,5 +50,16 @@ func (c *RecorderClient) NewRequest(
 	config *Config,
 ) (*http.Request, error) {
 	url := internal.URLJoin(config.BasePath, path)
-	return httptest.NewRequest(method, url, config.Body), nil
+	req := httptest.NewRequest(method, url, config.Body)
+
+	if config.Query != nil {
+		q := config.Query
+		for k, vs := range req.URL.Query() {
+			for _, v := range vs {
+				q.Add(k, v)
+			}
+		}
+		req.URL.RawQuery = q.Encode()
+	}
+	return req, nil
 }
