@@ -50,6 +50,36 @@ func (c *Client) Bind(options ...func(*Config)) *Client {
 	return newClient
 }
 
+// GET :
+func (c *Client) GET(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+	return c.Do(t, "GET", path, options...)
+}
+
+// POST :
+func (c *Client) POST(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+	return c.Do(t, "POST", path, options...)
+}
+
+// PUT :
+func (c *Client) PUT(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+	return c.Do(t, "PUT", path, options...)
+}
+
+// PATCH :
+func (c *Client) PATCH(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+	return c.Do(t, "PATCH", path, options...)
+}
+
+// DELETE :
+func (c *Client) DELETE(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+	return c.Do(t, "DELETE", path, options...)
+}
+
+// HEAD :
+func (c *Client) HEAD(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+	return c.Do(t, "HEAD", path, options...)
+}
+
 // Do :
 func (c *Client) Do(
 	t testing.TB,

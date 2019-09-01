@@ -16,7 +16,7 @@ func TestIt(t *testing.T) {
 	client := webtest.NewClientFromTestServer(ts)
 
 	t.Run("200", func(t *testing.T) {
-		got, err, teardown := client.Do(t, "GET", "/status/200")
+		got, err, teardown := client.GET(t, "/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.Code(), err),
 			"response: ", got.LazyText(), // add more contextual information?
@@ -39,7 +39,7 @@ func TestIt(t *testing.T) {
 			client := client.Bind(
 				hook.ExpectCode(200),
 			)
-			got, err, teardown := client.Do(t, "GET", "/status/200")
+			got, err, teardown := client.GET(t, "/status/200")
 			noerror.Must(t, err)
 			defer teardown()
 
@@ -70,7 +70,7 @@ func TestIt(t *testing.T) {
 			for _, c := range cases {
 				c := c
 				t.Run(c.msg, func(t *testing.T) {
-					got, err, teardown := client.Do(t, "GET", c.path)
+					got, err, teardown := client.GET(t, c.path)
 					noerror.Must(t, err)
 					defer teardown()
 
