@@ -11,7 +11,7 @@ import (
 )
 
 // Option :
-type Option func(*Config)
+type Option = func(*Config)
 
 // Response :
 type Response = testclient.Response
