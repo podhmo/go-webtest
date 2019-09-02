@@ -1,0 +1,16 @@
+{
+  "modifiedAt": "2019-09-03T00:28:31.156586997+09:00",
+  "data": {
+    "request": {
+      "method": "GET",
+      "path": "/auth/basic-auth/user/pass"
+    },
+    "response": {
+      "data": {
+        "authenticated": true,
+        "user": "user"
+      },
+      "statusCode": 200
+    }
+  }
+}

@@ -9,9 +9,16 @@ type Assertion = func(t *testing.T, got Response)
 
 // Try :
 func Try(t *testing.T, assertions ...Assertion) *TryWithAssertion {
+	var args []Assertion
+	for _, arg := range assertions {
+		if arg == nil {
+			continue
+		}
+		args = append(args)
+	}
 	return &TryWithAssertion{
 		t:          t,
-		assertions: assertions,
+		assertions: args,
 	}
 }
 

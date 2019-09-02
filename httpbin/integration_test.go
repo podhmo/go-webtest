@@ -96,10 +96,12 @@ func TestIt(t *testing.T) {
 				code: 200,
 				user: "user", pass: "pass",
 				assertion: func(t *testing.T, got webtest.Response) {
+					var want interface{}
+					noerror.Should(t, hook.GetExpectedDataFromSnapshot(t, &want)(got))
 					noerror.Should(t,
 						jsonequal.ShouldBeSame(
-							jsonequal.FromString(`{"authenticated": true, "user": "user"}`),
 							jsonequal.From(got.JSONData()),
+							jsonequal.From(want),
 						),
 					)
 				},
@@ -107,11 +109,6 @@ func TestIt(t *testing.T) {
 			{
 				code: 401,
 				user: "user", pass: "another",
-				assertion: func(t *testing.T, got webtest.Response) {
-					noerror.Should(t,
-						noerror.Equal(401).Actual(got.Code()),
-					)
-				},
 			},
 		}
 
@@ -121,6 +118,7 @@ func TestIt(t *testing.T) {
 				webtest.
 					Try(t, c.assertion).
 					With(client.GET("/auth/basic-auth/user/pass",
+						hook.ExpectCode(t, c.code),
 						webtest.WithModifyRequest(func(req *http.Request) {
 							req.SetBasicAuth(c.user, c.pass)
 						}),
