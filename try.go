@@ -14,7 +14,7 @@ func Try(t *testing.T, assertions ...Assertion) *TryWithAssertion {
 		if arg == nil {
 			continue
 		}
-		args = append(args)
+		args = append(args, arg)
 	}
 	return &TryWithAssertion{
 		t:          t,
