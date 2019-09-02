@@ -30,24 +30,6 @@ type Internal interface {
 // Client :
 type Client struct {
 	Internal Internal
-	Config   *Config
-}
-
-// Copy :
-func (c *Client) Copy() *Client {
-	return &Client{
-		Internal: c.Internal,
-		Config:   c.Config.Copy(),
-	}
-}
-
-// Bind :
-func (c *Client) Bind(options ...func(*Config)) *Client {
-	newClient := c.Copy()
-	for _, opt := range options {
-		opt(newClient.Config)
-	}
-	return newClient
 }
 
 // GET :
@@ -87,7 +69,7 @@ func (c *Client) Do(
 	path string,
 	options ...func(*Config),
 ) (Response, error, func()) {
-	config := c.Config.Copy()
+	config := NewConfig()
 	for _, opt := range options {
 		opt(config)
 	}
@@ -105,7 +87,7 @@ func (c *Client) DoFromRequest(
 	req *http.Request,
 	options ...func(*Config),
 ) (Response, error, func()) {
-	config := c.Config.Copy()
+	config := NewConfig()
 	for _, opt := range options {
 		opt(config)
 	}
@@ -136,44 +118,29 @@ func (c *Client) communicate(
 }
 
 // NewClientFromTestServer :
-func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Client {
-	c := NewConfig()
-	for _, opt := range options {
-		opt(c)
-	}
+func NewClientFromTestServer(ts *httptest.Server) *Client {
 	return &Client{
 		Internal: &testclient.RealClient{
 			URL: ts.URL,
 		},
-		Config: c,
 	}
 }
 
 // NewClientFromHandler :
-func NewClientFromHandler(handler http.Handler, options ...func(*Config)) *Client {
-	c := NewConfig()
-	for _, opt := range options {
-		opt(c)
-	}
+func NewClientFromHandler(handler http.Handler) *Client {
 	return &Client{
 		Internal: &testclient.FakeClient{
 			Handler: handler,
 		},
-		Config: c,
 	}
 }
 
 // NewClientFromURL :
-func NewClientFromURL(url string, options ...func(*Config)) *Client {
-	c := NewConfig()
-	for _, opt := range options {
-		opt(c)
-	}
+func NewClientFromURL(url string) *Client {
 	return &Client{
 		Internal: &testclient.RealClient{
 			URL: url,
 		},
-		Config: c,
 	}
 }
 
