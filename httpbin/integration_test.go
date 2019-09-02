@@ -186,7 +186,7 @@ func TestUnit(t *testing.T) {
 		for i, c := range cases {
 			c := c
 			t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
-				options := []func(*webtest.Config){
+				options := []webtest.Option{
 					hook.ExpectCode(200),
 				}
 				if c.query != nil {
