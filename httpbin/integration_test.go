@@ -19,12 +19,12 @@ func TestIt(t *testing.T) {
 	client := webtest.NewClientFromTestServer(ts)
 
 	t.Run("200", func(t *testing.T) {
-		got, err, teardown := client.GET("/status/200")
+		got, err := client.GET("/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.Code(), err),
 			"response: ", got.LazyText(), // add more contextual information?
 		)
-		defer teardown()
+		defer func() { noerror.Should(t, got.Close()) }()
 
 		// todo: assertion response
 		noerror.Should(t,
@@ -39,11 +39,11 @@ func TestIt(t *testing.T) {
 
 	t.Run("with hooks", func(t *testing.T) {
 		t.Run("200, status check", func(t *testing.T) {
-			got, err, teardown := client.GET("/status/200",
+			got, err := client.GET("/status/200",
 				hook.ExpectCode(t, 200),
 			)
 			noerror.Must(t, err)
-			defer teardown()
+			defer func() { noerror.Should(t, got.Close()) }()
 
 			noerror.Should(t,
 				jsonequal.ShouldBeSame(
@@ -68,11 +68,11 @@ func TestIt(t *testing.T) {
 			for _, c := range cases {
 				c := c
 				t.Run(c.msg, func(t *testing.T) {
-					got, err, teardown := client.GET(c.path,
+					got, err := client.GET(c.path,
 						hook.GetExpectedDataFromSnapshot(t, &want),
 					)
 					noerror.Must(t, err)
-					defer teardown()
+					defer func() { noerror.Should(t, got.Close()) }()
 
 					noerror.Should(t,
 						jsonequal.ShouldBeSame(
@@ -133,12 +133,12 @@ func TestUnit(t *testing.T) {
 	client := webtest.NewClientFromHandler(handler)
 
 	t.Run("200", func(t *testing.T) {
-		got, err, teardown := client.Do("GET", "/status/200")
+		got, err := client.Do("GET", "/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.Code(), err),
 			"response: ", got.LazyText(), // add more contextual information?
 		)
-		defer teardown()
+		defer func() { noerror.Should(t, got.Close()) }()
 
 		// todo: assertion response
 		noerror.Should(t,
@@ -192,8 +192,9 @@ func TestUnit(t *testing.T) {
 					options = append(options, webtest.WithQuery(c.query))
 				}
 
-				got, _, teardown := client.Do("GET", c.path, options...)
-				defer teardown()
+				got, err := client.Do("GET", c.path, options...)
+				noerror.Must(t, err)
+				defer func() { noerror.Should(t, got.Close()) }()
 
 				var data map[string]interface{}
 				noerror.Must(t, got.ParseJSONData(&data))
