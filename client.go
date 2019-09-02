@@ -6,7 +6,6 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"strings"
-	"testing"
 
 	"github.com/podhmo/go-webtest/testclient"
 )
@@ -19,7 +18,6 @@ type Response = testclient.Response
 
 // Middleware :
 type Middleware = func(
-	t testing.TB,
 	req *http.Request,
 	inner func(*http.Request) (Response, error, func()),
 ) (Response, error, func())
@@ -36,38 +34,37 @@ type Client struct {
 }
 
 // GET :
-func (c *Client) GET(t testing.TB, path string, options ...Option) (Response, error, func()) {
-	return c.Do(t, "GET", path, options...)
+func (c *Client) GET(path string, options ...Option) (Response, error, func()) {
+	return c.Do("GET", path, options...)
 }
 
 // POST :
-func (c *Client) POST(t testing.TB, path string, options ...Option) (Response, error, func()) {
-	return c.Do(t, "POST", path, options...)
+func (c *Client) POST(path string, options ...Option) (Response, error, func()) {
+	return c.Do("POST", path, options...)
 }
 
 // PUT :
-func (c *Client) PUT(t testing.TB, path string, options ...Option) (Response, error, func()) {
-	return c.Do(t, "PUT", path, options...)
+func (c *Client) PUT(path string, options ...Option) (Response, error, func()) {
+	return c.Do("PUT", path, options...)
 }
 
 // PATCH :
-func (c *Client) PATCH(t testing.TB, path string, options ...Option) (Response, error, func()) {
-	return c.Do(t, "PATCH", path, options...)
+func (c *Client) PATCH(path string, options ...Option) (Response, error, func()) {
+	return c.Do("PATCH", path, options...)
 }
 
 // DELETE :
-func (c *Client) DELETE(t testing.TB, path string, options ...Option) (Response, error, func()) {
-	return c.Do(t, "DELETE", path, options...)
+func (c *Client) DELETE(path string, options ...Option) (Response, error, func()) {
+	return c.Do("DELETE", path, options...)
 }
 
 // HEAD :
-func (c *Client) HEAD(t testing.TB, path string, options ...Option) (Response, error, func()) {
-	return c.Do(t, "HEAD", path, options...)
+func (c *Client) HEAD(path string, options ...Option) (Response, error, func()) {
+	return c.Do("HEAD", path, options...)
 }
 
 // Do :
 func (c *Client) Do(
-	t testing.TB,
 	method string,
 	path string,
 	options ...Option,
@@ -81,12 +78,11 @@ func (c *Client) Do(
 	if err != nil {
 		return nil, err, nil
 	}
-	return c.communicate(t, req, config)
+	return c.communicate(req, config)
 }
 
 // DoFromRequest :
 func (c *Client) DoFromRequest(
-	t testing.TB,
 	req *http.Request,
 	options ...Option,
 ) (Response, error, func()) {
@@ -94,12 +90,11 @@ func (c *Client) DoFromRequest(
 	for _, opt := range options {
 		opt(config)
 	}
-	return c.communicate(t, req, config)
+	return c.communicate(req, config)
 }
 
 // DoFromRequest :
 func (c *Client) communicate(
-	t testing.TB,
 	req *http.Request,
 	config *Config,
 ) (Response, error, func()) {
@@ -114,7 +109,7 @@ func (c *Client) communicate(
 		middleware := config.Middlewares[i]
 		inner := doRequet
 		doRequet = func(req *http.Request) (Response, error, func()) {
-			return middleware(t, req, inner)
+			return middleware(req, inner)
 		}
 	}
 	return doRequet(req)
