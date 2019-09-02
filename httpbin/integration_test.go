@@ -96,12 +96,10 @@ func TestIt(t *testing.T) {
 				code: 200,
 				user: "user", pass: "pass",
 				assertion: func(t *testing.T, got webtest.Response) {
-					var want interface{}
-					noerror.Should(t, hook.GetExpectedDataFromSnapshot(t, &want)(got))
 					noerror.Should(t,
 						jsonequal.ShouldBeSame(
 							jsonequal.From(got.JSONData()),
-							jsonequal.From(want),
+							jsonequal.FromString(`{"authenticated": true, "user": "user"}`),
 						),
 					)
 				},

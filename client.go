@@ -25,7 +25,7 @@ func (f optionFunc) Apply(c *Config) {
 type Response = testclient.Response
 
 // Hook :
-type Hook func(Response) error
+type Hook func(*http.Request, func(*http.Request) (Response, error)) (Response, error)
 
 // Apply :
 func (hook Hook) Apply(c *Config) {
@@ -112,16 +112,16 @@ func (c *Client) communicate(
 		modifyRequest(req)
 	}
 
-	got, err := c.Internal.Do(req, config.ClientConfig)
-	if err != nil {
-		return got, err
+	doRequest := func(req *http.Request) (Response, error) {
+		return c.Internal.Do(req, config.ClientConfig)
 	}
 	for _, hook := range config.Hooks {
-		if err := hook(got); err != nil {
-			return got, err
+		inner := doRequest
+		doRequest = func(req *http.Request) (Response, error) {
+			return hook(req, inner)
 		}
 	}
-	return got, nil
+	return doRequest(req)
 }
 
 // NewClientFromTestServer :
