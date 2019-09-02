@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"sync"
 
-	"github.com/podhmo/go-webtest/internal"
+	"github.com/podhmo/go-webtest/testclient/internal"
 )
 
 // RealClient :

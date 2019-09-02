@@ -5,7 +5,7 @@ import (
 	"net/http/httptest"
 	"sync"
 
-	"github.com/podhmo/go-webtest/internal"
+	"github.com/podhmo/go-webtest/testclient/internal"
 )
 
 // FakeClient :

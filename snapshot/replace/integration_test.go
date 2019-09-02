@@ -6,7 +6,7 @@ import (
 
 	rfc3339 "github.com/podhmo/go-rfc3339"
 	"github.com/podhmo/go-webtest/jsonequal"
-	"github.com/podhmo/go-webtest/replace"
+	"github.com/podhmo/go-webtest/snapshot/replace"
 )
 
 type Data struct {
