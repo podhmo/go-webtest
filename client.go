@@ -11,16 +11,26 @@ import (
 )
 
 // Option :
-type Option = func(*Config)
+type Option interface {
+	Apply(*Config)
+}
+
+type optionFunc func(*Config)
+
+func (f optionFunc) Apply(c *Config) {
+	f(c)
+}
 
 // Response :
 type Response = testclient.Response
 
 // Hook :
-type Hook = func(
-	req *http.Request,
-	inner func(*http.Request) (Response, error, func()),
-) (Response, error, func())
+type Hook func(Response) error
+
+// Apply :
+func (hook Hook) Apply(c *Config) {
+	c.Hooks = append(c.Hooks, hook)
+}
 
 // Internal :
 type Internal interface {
@@ -71,7 +81,7 @@ func (c *Client) Do(
 ) (Response, error, func()) {
 	config := NewConfig()
 	for _, opt := range options {
-		opt(config)
+		opt.Apply(config)
 	}
 
 	req, err := c.Internal.NewRequest(method, path, config.ClientConfig)
@@ -88,7 +98,7 @@ func (c *Client) DoFromRequest(
 ) (Response, error, func()) {
 	config := NewConfig()
 	for _, opt := range options {
-		opt(config)
+		opt.Apply(config)
 	}
 	return c.communicate(req, config)
 }
@@ -102,17 +112,16 @@ func (c *Client) communicate(
 		modifyRequest(req)
 	}
 
-	doRequet := func(req *http.Request) (Response, error, func()) {
-		return c.Internal.Do(req, config.ClientConfig)
+	got, err, teardown := c.Internal.Do(req, config.ClientConfig)
+	if err != nil {
+		return got, err, teardown
 	}
-	for i := range config.Hooks {
-		hook := config.Hooks[i]
-		inner := doRequet
-		doRequet = func(req *http.Request) (Response, error, func()) {
-			return hook(req, inner)
+	for _, hook := range config.Hooks {
+		if err := hook(got); err != nil {
+			return got, err, teardown
 		}
 	}
-	return doRequet(req)
+	return got, nil, teardown
 }
 
 // NewClientFromTestServer :
@@ -177,21 +186,21 @@ func (c *Config) Copy() *Config {
 
 // WithBasePath set base path
 func WithBasePath(basePath string) Option {
-	return func(c *Config) {
+	return optionFunc(func(c *Config) {
 		c.ClientConfig.BasePath = basePath
-	}
+	})
 }
 
 // WithQuery :
 func WithQuery(query url.Values) Option {
-	return func(c *Config) {
+	return optionFunc(func(c *Config) {
 		c.ClientConfig.Query = query
-	}
+	})
 }
 
 // WithForm setup as send form-data request
 func WithForm(data url.Values) Option {
-	return func(c *Config) {
+	return optionFunc(func(c *Config) {
 		if c.ClientConfig.Body != nil {
 			panic("body is already set, enable to set body only once") // xxx
 		}
@@ -199,12 +208,12 @@ func WithForm(data url.Values) Option {
 		c.ModifyRequests = append(c.ModifyRequests, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		})
-	}
+	})
 }
 
 // WithJSON setup as json request
 func WithJSON(body io.Reader) Option {
-	return func(c *Config) {
+	return optionFunc(func(c *Config) {
 		if c.ClientConfig.Body != nil {
 			panic("body is already set, enable to set body only once") // xxx
 		}
@@ -212,19 +221,19 @@ func WithJSON(body io.Reader) Option {
 		c.ModifyRequests = append(c.ModifyRequests, func(req *http.Request) {
 			req.Header.Set("Content-Type", "application/json")
 		})
-	}
+	})
 }
 
 // WithModifyRequest adds request modifyRequest
 func WithModifyRequest(modifyRequest func(*http.Request)) Option {
-	return func(c *Config) {
+	return optionFunc(func(c *Config) {
 		c.ModifyRequests = append(c.ModifyRequests, modifyRequest)
-	}
+	})
 }
 
 // WithRoundTripperDecorator with client side middleware for roundTripper
 func WithRoundTripperDecorator(decorator testclient.RoundTripperDecorator) Option {
-	return func(c *Config) {
+	return optionFunc(func(c *Config) {
 		c.ClientConfig.Decorator = decorator
-	}
+	})
 }
