@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/podhmo/go-webtest/testclient"
+	"github.com/podhmo/go-webtest/tripperware"
 )
 
 // Option :
@@ -23,14 +24,6 @@ func (f optionFunc) Apply(c *Config) {
 
 // Response :
 type Response = testclient.Response
-
-// Hook :
-type Hook func(Response) error
-
-// Apply :
-func (hook Hook) Apply(c *Config) {
-	c.Hooks = append(c.Hooks, hook)
-}
 
 // Internal :
 type Internal interface {
@@ -112,16 +105,10 @@ func (c *Client) communicate(
 		modifyRequest(req)
 	}
 
-	got, err := c.Internal.Do(req, config.ClientConfig)
-	if err != nil {
-		return got, err
+	doRequest := func(req *http.Request) (Response, error) {
+		return c.Internal.Do(req, config.ClientConfig)
 	}
-	for _, hook := range config.Hooks {
-		if err := hook(got); err != nil {
-			return got, err
-		}
-	}
-	return got, nil
+	return doRequest(req)
 }
 
 // NewClientFromTestServer :
@@ -158,7 +145,6 @@ type Config struct {
 	ClientConfig *testclient.Config
 
 	ModifyRequests []func(*http.Request) // request modifyRequests
-	Hooks          []Hook                // client hooks
 }
 
 // NewConfig :
@@ -175,10 +161,6 @@ func (c *Config) Copy() *Config {
 		ModifyRequests: append(
 			make([]func(*http.Request), 0, len(c.ModifyRequests)),
 			c.ModifyRequests...,
-		),
-		Hooks: append(
-			make([]Hook, 0, len(c.Hooks)),
-			c.Hooks...,
 		),
 		ClientConfig: c.ClientConfig.Copy(),
 	}
@@ -231,9 +213,9 @@ func WithModifyRequest(modifyRequest func(*http.Request)) Option {
 	})
 }
 
-// WithRoundTripperDecorator with client side middleware for roundTripper
-func WithRoundTripperDecorator(decorator testclient.RoundTripperDecorator) Option {
+// WithTripperware with client side middleware for roundTripper
+func WithTripperware(wares ...tripperware.Ware) Option {
 	return optionFunc(func(c *Config) {
-		c.ClientConfig.Decorator = decorator
+		c.ClientConfig.Tripperwares = append(c.ClientConfig.Tripperwares, wares...)
 	})
 }

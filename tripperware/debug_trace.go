@@ -1,4 +1,4 @@
-package testclient
+package tripperware
 
 import (
 	"bufio"
@@ -38,8 +38,8 @@ func (w *withPrefixWriter) Write(b []byte) (int, error) {
 	return total, nil
 }
 
-// DebugRoundTripper :
-type DebugRoundTripper struct {
+// DebugTracer :
+type DebugTracer struct {
 	IgnoreDumpRequest  bool
 	IgnoreDumpResponse bool
 	Quiet              bool
@@ -48,7 +48,7 @@ type DebugRoundTripper struct {
 }
 
 // writer :
-func (d *DebugRoundTripper) writer() io.Writer {
+func (d *DebugTracer) writer() io.Writer {
 	if d.Writer != nil {
 		return d.Writer
 	}
@@ -56,7 +56,7 @@ func (d *DebugRoundTripper) writer() io.Writer {
 }
 
 // RoundTripWith :
-func (t *DebugRoundTripper) RoundTripWith(inner http.RoundTripper, req *http.Request) (resp *http.Response, err error) {
+func (t *DebugTracer) RoundTripWith(inner http.RoundTripper, req *http.Request) (resp *http.Response, err error) {
 	if !t.IgnoreDumpRequest {
 		b, err := httputil.DumpRequest(req, !t.Quiet)
 		if err != nil {
@@ -90,13 +90,12 @@ func (t *DebugRoundTripper) RoundTripWith(inner http.RoundTripper, req *http.Req
 	return resp, nil
 }
 
-func (t *DebugRoundTripper) RoundTrip(req *http.Request) (resp *http.Response, err error) {
-	return t.RoundTripWith(http.DefaultTransport, req)
-}
-
-// NewDebugRoundTripper :
-func NewDebugRoundTripper() RoundTripperDecorator {
-	return FuncRoundTripper{
-		Fn: (&DebugRoundTripper{}).RoundTripWith,
+// NewDebugTracer :
+func NewDebugTracer() Ware {
+	t := &DebugTracer{}
+	return func(next http.RoundTripper) http.RoundTripper {
+		return RoundTripFunc(func(req *http.Request) (*http.Response, error) {
+			return t.RoundTripWith(next, req)
+		})
 	}
 }
