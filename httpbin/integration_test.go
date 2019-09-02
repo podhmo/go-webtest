@@ -19,7 +19,7 @@ func TestIt(t *testing.T) {
 	client := webtest.NewClientFromTestServer(ts)
 
 	t.Run("200", func(t *testing.T) {
-		got, err, teardown := client.GET(t, "/status/200")
+		got, err, teardown := client.GET("/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.Code(), err),
 			"response: ", got.LazyText(), // add more contextual information?
@@ -39,8 +39,8 @@ func TestIt(t *testing.T) {
 
 	t.Run("with middlewares", func(t *testing.T) {
 		t.Run("200, status check", func(t *testing.T) {
-			got, err, teardown := client.GET(t, "/status/200",
-				hook.ExpectCode(200),
+			got, err, teardown := client.GET("/status/200",
+				hook.ExpectCode(t, 200),
 			)
 			noerror.Must(t, err)
 			defer teardown()
@@ -68,8 +68,8 @@ func TestIt(t *testing.T) {
 			for _, c := range cases {
 				c := c
 				t.Run(c.msg, func(t *testing.T) {
-					got, err, teardown := client.GET(t, c.path,
-						hook.GetExpectedDataFromSnapshot(&want),
+					got, err, teardown := client.GET(c.path,
+						hook.GetExpectedDataFromSnapshot(t, &want),
 					)
 					noerror.Must(t, err)
 					defer teardown()
@@ -119,7 +119,7 @@ func TestIt(t *testing.T) {
 			c := c
 			t.Run(fmt.Sprintf("%d", c.code), func(t *testing.T) {
 				webtest.AssertWith(t, c.assertion).
-					Try(client.GET(t, "/auth/basic-auth/user/pass",
+					Try(client.GET("/auth/basic-auth/user/pass",
 						webtest.WithModifyRequest(func(req *http.Request) {
 							req.SetBasicAuth(c.user, c.pass)
 						}),
@@ -134,7 +134,7 @@ func TestUnit(t *testing.T) {
 	client := webtest.NewClientFromHandler(handler)
 
 	t.Run("200", func(t *testing.T) {
-		got, err, teardown := client.Do(t, "GET", "/status/200")
+		got, err, teardown := client.Do("GET", "/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.Code(), err),
 			"response: ", got.LazyText(), // add more contextual information?
@@ -187,13 +187,13 @@ func TestUnit(t *testing.T) {
 			c := c
 			t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
 				options := []webtest.Option{
-					hook.ExpectCode(200),
+					hook.ExpectCode(t, 200),
 				}
 				if c.query != nil {
 					options = append(options, webtest.WithQuery(c.query))
 				}
 
-				got, _, teardown := client.Do(t, "GET", c.path, options...)
+				got, _, teardown := client.Do("GET", c.path, options...)
 				defer teardown()
 
 				var data map[string]interface{}
