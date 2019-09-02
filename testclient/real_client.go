@@ -17,7 +17,7 @@ type RealClient struct {
 func (c *RealClient) Do(
 	req *http.Request,
 	config *Config,
-) (Response, error, func()) {
+) (Response, error) {
 	client := getInternalClient(c.Client, config.Decorator)
 
 	var adapter *ResponseAdapter
@@ -26,7 +26,7 @@ func (c *RealClient) Do(
 
 	raw, err := client.Do(req)
 	if err != nil {
-		return nil, err, nil
+		return nil, err
 	}
 
 	adapter = NewResponseAdapter(
@@ -37,7 +37,7 @@ func (c *RealClient) Do(
 			return raw
 		},
 	)
-	return adapter, err, adapter.Close
+	return adapter, err
 }
 
 // NewRequest :

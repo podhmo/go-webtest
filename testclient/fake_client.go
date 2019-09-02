@@ -25,7 +25,7 @@ func (c *FakeClient) RoundTrip(req *http.Request) (*http.Response, error) {
 func (c *FakeClient) Do(
 	req *http.Request,
 	config *Config,
-) (Response, error, func()) {
+) (Response, error) {
 	var adapter *ResponseAdapter
 	var once sync.Once
 
@@ -41,7 +41,7 @@ func (c *FakeClient) Do(
 			return res
 		},
 	)
-	return adapter, err, adapter.Close
+	return adapter, err
 }
 
 // NewRequest :
