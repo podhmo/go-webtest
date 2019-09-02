@@ -90,7 +90,7 @@ func TestIt(t *testing.T) {
 			user      string
 			pass      string
 			code      int
-			assertion func(*testing.T, webtest.Response)
+			assertion webtest.Assertion
 		}{
 			{
 				code: 200,
@@ -119,8 +119,8 @@ func TestIt(t *testing.T) {
 			c := c
 			t.Run(fmt.Sprintf("%d", c.code), func(t *testing.T) {
 				webtest.
-					AssertWith(t, c.assertion).
-					Try(client.GET("/auth/basic-auth/user/pass",
+					Try(t, c.assertion).
+					With(client.GET("/auth/basic-auth/user/pass",
 						webtest.WithModifyRequest(func(req *http.Request) {
 							req.SetBasicAuth(c.user, c.pass)
 						}),

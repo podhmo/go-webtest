@@ -7,8 +7,8 @@ import (
 // Assertion :
 type Assertion = func(t *testing.T, got Response)
 
-// AssertWith :
-func AssertWith(t *testing.T, assertions ...Assertion) *TryWithAssertion {
+// Try :
+func Try(t *testing.T, assertions ...Assertion) *TryWithAssertion {
 	return &TryWithAssertion{
 		t:          t,
 		assertions: assertions,
@@ -21,8 +21,8 @@ type TryWithAssertion struct {
 	assertions []Assertion
 }
 
-// Try :
-func (a *TryWithAssertion) Try(got Response, err error, teardown func()) {
+// With :
+func (a *TryWithAssertion) With(got Response, err error, teardown func()) {
 	if err != nil {
 		a.t.Fatalf("try: %+v", err)
 	}
