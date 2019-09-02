@@ -25,7 +25,7 @@ func (f optionFunc) Apply(c *Config) {
 type Response = testclient.Response
 
 // Hook :
-type Hook func(Response) error
+type Hook func(Response, *http.Request) error
 
 // Apply :
 func (hook Hook) Apply(c *Config) {
@@ -117,7 +117,7 @@ func (c *Client) communicate(
 		return got, err, teardown
 	}
 	for _, hook := range config.Hooks {
-		if err := hook(got); err != nil {
+		if err := hook(got, req); err != nil {
 			return got, err, teardown
 		}
 	}

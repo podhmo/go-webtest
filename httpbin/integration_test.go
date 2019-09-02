@@ -97,7 +97,7 @@ func TestIt(t *testing.T) {
 				user: "user", pass: "pass",
 				assertion: func(t *testing.T, got webtest.Response) {
 					var want interface{}
-					noerror.Should(t, hook.GetExpectedDataFromSnapshot(t, &want)(got))
+					noerror.Should(t, hook.GetExpectedDataFromSnapshot(t, &want)(got, got.Request()))
 					noerror.Should(t,
 						jsonequal.ShouldBeSame(
 							jsonequal.From(got.JSONData()),
