@@ -10,11 +10,11 @@ import (
 // Response :
 type Response = testclient.Response
 
-// Middleware :
-type Middleware = webtest.Middleware
+// Hook :
+type Hook = webtest.Hook
 
-// NewMiddleware :
-func NewMiddleware(wrap func(res Response, req *http.Request) error) Middleware {
+// NewHook :
+func NewHook(wrap func(res Response, req *http.Request) error) Hook {
 	return func(
 		req *http.Request,
 		inner func(*http.Request) (Response, error, func()),

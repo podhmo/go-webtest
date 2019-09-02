@@ -16,8 +16,8 @@ type Option func(*Config)
 // Response :
 type Response = testclient.Response
 
-// Middleware :
-type Middleware = func(
+// Hook :
+type Hook = func(
 	req *http.Request,
 	inner func(*http.Request) (Response, error, func()),
 ) (Response, error, func())
@@ -105,11 +105,11 @@ func (c *Client) communicate(
 	doRequet := func(req *http.Request) (Response, error, func()) {
 		return c.Internal.Do(req, config.ClientConfig)
 	}
-	for i := range config.Middlewares {
-		middleware := config.Middlewares[i]
+	for i := range config.Hooks {
+		hook := config.Hooks[i]
 		inner := doRequet
 		doRequet = func(req *http.Request) (Response, error, func()) {
-			return middleware(req, inner)
+			return hook(req, inner)
 		}
 	}
 	return doRequet(req)
@@ -149,7 +149,7 @@ type Config struct {
 	ClientConfig *testclient.Config
 
 	ModifyRequests []func(*http.Request) // request modifyRequests
-	Middlewares    []Middleware          // client middlewares
+	Hooks          []Hook                // client hooks
 }
 
 // NewConfig :
@@ -167,9 +167,9 @@ func (c *Config) Copy() *Config {
 			make([]func(*http.Request), 0, len(c.ModifyRequests)),
 			c.ModifyRequests...,
 		),
-		Middlewares: append(
-			make([]Middleware, 0, len(c.Middlewares)),
-			c.Middlewares...,
+		Hooks: append(
+			make([]Hook, 0, len(c.Hooks)),
+			c.Hooks...,
 		),
 		ClientConfig: c.ClientConfig.Copy(),
 	}

@@ -37,7 +37,7 @@ func TestIt(t *testing.T) {
 		// todo: assertion db check
 	})
 
-	t.Run("with middlewares", func(t *testing.T) {
+	t.Run("with hooks", func(t *testing.T) {
 		t.Run("200, status check", func(t *testing.T) {
 			got, err, teardown := client.GET("/status/200",
 				hook.ExpectCode(t, 200),

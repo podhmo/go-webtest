@@ -11,7 +11,7 @@ import (
 // ExpectCode :
 func ExpectCode(t testing.TB, code int) webtest.Option {
 	return func(c *webtest.Config) {
-		c.Middlewares = append(c.Middlewares, NewMiddleware(func(
+		c.Hooks = append(c.Hooks, NewHook(func(
 			res Response,
 			req *http.Request,
 		) error {

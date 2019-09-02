@@ -15,7 +15,7 @@ func GetExpectedDataFromSnapshot(
 	options ...func(sc *snapshot.Config),
 ) webtest.Option {
 	return func(c *webtest.Config) {
-		c.Middlewares = append(c.Middlewares, NewMiddleware(
+		c.Hooks = append(c.Hooks, NewHook(
 			func(
 				res Response,
 				req *http.Request,
@@ -36,7 +36,7 @@ func TakeSnapshot(
 	options ...func(sc *snapshot.Config),
 ) webtest.Option {
 	return func(c *webtest.Config) {
-		c.Middlewares = append(c.Middlewares, NewMiddleware(
+		c.Hooks = append(c.Hooks, NewHook(
 			func(
 				res Response,
 				req *http.Request,
