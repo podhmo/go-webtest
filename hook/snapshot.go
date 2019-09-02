@@ -15,18 +15,17 @@ func GetExpectedDataFromSnapshot(
 	options ...func(sc *snapshot.Config),
 ) webtest.Option {
 	return func(c *webtest.Config) {
-		c.Hooks = append(c.Hooks, NewHook(
-			func(
-				res Response,
-				req *http.Request,
-			) error {
-				storedata := createSnapshotData(res, req)
+		c.Hooks = append(c.Hooks, func(
+			res Response,
+			req *http.Request,
+		) error {
+			storedata := createSnapshotData(res, req)
 
-				// assign (side-effect!!), want is response data
-				loaddata := snapshot.Take(t, storedata, options...)
-				*want = loaddata.(map[string]interface{})["response"].(map[string]interface{})["data"]
-				return nil
-			}))
+			// assign (side-effect!!), want is response data
+			loaddata := snapshot.Take(t, storedata, options...)
+			*want = loaddata.(map[string]interface{})["response"].(map[string]interface{})["data"]
+			return nil
+		})
 	}
 }
 
@@ -36,18 +35,17 @@ func TakeSnapshot(
 	options ...func(sc *snapshot.Config),
 ) webtest.Option {
 	return func(c *webtest.Config) {
-		c.Hooks = append(c.Hooks, NewHook(
-			func(
-				res Response,
-				req *http.Request,
-			) error {
-				storedata := createSnapshotData(res, req)
-				_ = snapshot.Take(t,
-					storedata,
-					append([]func(*snapshot.Config){snapshot.WithForceUpdate()}, options...)...,
-				)
-				return nil
-			}))
+		c.Hooks = append(c.Hooks, func(
+			res Response,
+			req *http.Request,
+		) error {
+			storedata := createSnapshotData(res, req)
+			_ = snapshot.Take(t,
+				storedata,
+				append([]func(*snapshot.Config){snapshot.WithForceUpdate()}, options...)...,
+			)
+			return nil
+		})
 	}
 }
 

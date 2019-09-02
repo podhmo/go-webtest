@@ -17,10 +17,7 @@ type Option = func(*Config)
 type Response = testclient.Response
 
 // Hook :
-type Hook = func(
-	req *http.Request,
-	inner func(*http.Request) (Response, error, func()),
-) (Response, error, func())
+type Hook = func(Response, *http.Request) error
 
 // Internal :
 type Internal interface {
@@ -102,17 +99,16 @@ func (c *Client) communicate(
 		modifyRequest(req)
 	}
 
-	doRequet := func(req *http.Request) (Response, error, func()) {
-		return c.Internal.Do(req, config.ClientConfig)
+	got, err, teardown := c.Internal.Do(req, config.ClientConfig)
+	if err != nil {
+		return got, err, teardown
 	}
-	for i := range config.Hooks {
-		hook := config.Hooks[i]
-		inner := doRequet
-		doRequet = func(req *http.Request) (Response, error, func()) {
-			return hook(req, inner)
+	for _, hook := range config.Hooks {
+		if err := hook(got, req); err != nil {
+			return got, err, teardown
 		}
 	}
-	return doRequet(req)
+	return got, nil, teardown
 }
 
 // NewClientFromTestServer :

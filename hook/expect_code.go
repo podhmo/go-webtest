@@ -11,7 +11,7 @@ import (
 // ExpectCode :
 func ExpectCode(t testing.TB, code int) webtest.Option {
 	return func(c *webtest.Config) {
-		c.Hooks = append(c.Hooks, NewHook(func(
+		c.Hooks = append(c.Hooks, func(
 			res Response,
 			req *http.Request,
 		) error {
@@ -19,7 +19,7 @@ func ExpectCode(t testing.TB, code int) webtest.Option {
 				return &statusError{code: code, response: res}
 			}
 			return nil
-		}))
+		})
 	}
 }
 
