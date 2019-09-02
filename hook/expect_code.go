@@ -2,16 +2,12 @@ package hook
 
 import (
 	"fmt"
-	"net/http"
 	"testing"
 )
 
 // ExpectCode :
 func ExpectCode(t testing.TB, code int) Hook {
-	return Hook(func(
-		res Response,
-		req *http.Request,
-	) error {
+	return Hook(func(res Response) error {
 		if res.Code() != code {
 			return &statusError{code: code, response: res}
 		}

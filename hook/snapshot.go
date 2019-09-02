@@ -14,10 +14,8 @@ func GetExpectedDataFromSnapshot(
 	want *interface{},
 	options ...func(sc *snapshot.Config),
 ) Hook {
-	return Hook(func(
-		res Response,
-		req *http.Request,
-	) error {
+	return Hook(func(res Response) error {
+		req := res.Request()
 		storedata := createSnapshotData(res, req)
 
 		// assign (side-effect!!), want is response data
@@ -32,10 +30,8 @@ func TakeSnapshot(
 	t testing.TB,
 	options ...func(sc *snapshot.Config),
 ) webtest.Option {
-	return Hook(func(
-		res Response,
-		req *http.Request,
-	) error {
+	return Hook(func(res Response) error {
+		req := res.Request()
 		storedata := createSnapshotData(res, req)
 		_ = snapshot.Take(t,
 			storedata,
