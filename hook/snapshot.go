@@ -9,11 +9,14 @@ import (
 )
 
 // GetExpectedDataFromSnapshot :
-func GetExpectedDataFromSnapshot(want *interface{}, options ...func(sc *snapshot.Config)) func(*webtest.Config) {
+func GetExpectedDataFromSnapshot(
+	t testing.TB,
+	want *interface{},
+	options ...func(sc *snapshot.Config),
+) webtest.Option {
 	return func(c *webtest.Config) {
-		c.Middlewares = append(c.Middlewares, NewMiddleware(
+		c.Hooks = append(c.Hooks, NewHook(
 			func(
-				t testing.TB,
 				res Response,
 				req *http.Request,
 			) error {
@@ -28,11 +31,13 @@ func GetExpectedDataFromSnapshot(want *interface{}, options ...func(sc *snapshot
 }
 
 // TakeSnapshot always takes a snapshot
-func TakeSnapshot(options ...func(sc *snapshot.Config)) func(*webtest.Config) {
+func TakeSnapshot(
+	t testing.TB,
+	options ...func(sc *snapshot.Config),
+) webtest.Option {
 	return func(c *webtest.Config) {
-		c.Middlewares = append(c.Middlewares, NewMiddleware(
+		c.Hooks = append(c.Hooks, NewHook(
 			func(
-				t testing.TB,
 				res Response,
 				req *http.Request,
 			) error {

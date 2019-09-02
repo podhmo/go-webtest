@@ -4,25 +4,30 @@ import (
 	"testing"
 )
 
-// AssertWith :
-func AssertWith(t *testing.T, assertion func(t *testing.T, got Response)) *TryWithAssertion {
+// Assertion :
+type Assertion = func(t *testing.T, got Response)
+
+// Try :
+func Try(t *testing.T, assertions ...Assertion) *TryWithAssertion {
 	return &TryWithAssertion{
-		t:         t,
-		assertion: assertion,
+		t:          t,
+		assertions: assertions,
 	}
 }
 
 // TryWithAssertion :
 type TryWithAssertion struct {
-	t         *testing.T
-	assertion func(*testing.T, Response)
+	t          *testing.T
+	assertions []Assertion
 }
 
-// Try :
-func (a *TryWithAssertion) Try(got Response, err error, teardown func()) {
+// With :
+func (a *TryWithAssertion) With(got Response, err error, teardown func()) {
 	if err != nil {
 		a.t.Fatalf("try: %+v", err)
 	}
 	defer teardown()
-	a.assertion(a.t, got)
+	for _, assert := range a.assertions {
+		assert(a.t, got)
+	}
 }

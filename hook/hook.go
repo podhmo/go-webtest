@@ -2,7 +2,6 @@ package hook
 
 import (
 	"net/http"
-	"testing"
 
 	webtest "github.com/podhmo/go-webtest"
 	"github.com/podhmo/go-webtest/testclient"
@@ -11,13 +10,12 @@ import (
 // Response :
 type Response = testclient.Response
 
-// Middleware :
-type Middleware = webtest.Middleware
+// Hook :
+type Hook = webtest.Hook
 
-// NewMiddleware :
-func NewMiddleware(wrap func(t testing.TB, res Response, req *http.Request) error) Middleware {
+// NewHook :
+func NewHook(wrap func(res Response, req *http.Request) error) Hook {
 	return func(
-		t testing.TB,
 		req *http.Request,
 		inner func(*http.Request) (Response, error, func()),
 	) (Response, error, func()) {
@@ -25,7 +23,7 @@ func NewMiddleware(wrap func(t testing.TB, res Response, req *http.Request) erro
 		if err != nil {
 			return res, err, teardown
 		}
-		if err := wrap(t, res, req); err != nil {
+		if err := wrap(res, req); err != nil {
 			return res, err, teardown
 		}
 		return res, err, teardown
