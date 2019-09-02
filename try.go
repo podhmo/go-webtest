@@ -23,6 +23,7 @@ type TryWithAssertion struct {
 
 // With :
 func (a *TryWithAssertion) With(got Response, err error, teardown func()) {
+	a.t.Helper()
 	if err != nil {
 		a.t.Fatalf("try: %+v", err)
 	}
