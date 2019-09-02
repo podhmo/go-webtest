@@ -39,10 +39,9 @@ func TestIt(t *testing.T) {
 
 	t.Run("with middlewares", func(t *testing.T) {
 		t.Run("200, status check", func(t *testing.T) {
-			client := client.Bind(
+			got, err, teardown := client.GET(t, "/status/200",
 				hook.ExpectCode(200),
 			)
-			got, err, teardown := client.GET(t, "/status/200")
 			noerror.Must(t, err)
 			defer teardown()
 
@@ -57,10 +56,6 @@ func TestIt(t *testing.T) {
 		t.Run("snapshot", func(t *testing.T) {
 			var want interface{}
 
-			client := client.Bind(
-				hook.GetExpectedDataFromSnapshot(&want),
-			)
-
 			cases := []struct {
 				path string
 				msg  string
@@ -73,7 +68,9 @@ func TestIt(t *testing.T) {
 			for _, c := range cases {
 				c := c
 				t.Run(c.msg, func(t *testing.T) {
-					got, err, teardown := client.GET(t, c.path)
+					got, err, teardown := client.GET(t, c.path,
+						hook.GetExpectedDataFromSnapshot(&want),
+					)
 					noerror.Must(t, err)
 					defer teardown()
 
@@ -156,10 +153,6 @@ func TestUnit(t *testing.T) {
 	})
 
 	t.Run("get", func(t *testing.T) {
-		client = client.Bind(
-			hook.ExpectCode(200),
-		)
-
 		cases := []struct {
 			path     string
 			query    url.Values
@@ -193,10 +186,13 @@ func TestUnit(t *testing.T) {
 		for i, c := range cases {
 			c := c
 			t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
-				var options []func(*webtest.Config)
+				options := []func(*webtest.Config){
+					hook.ExpectCode(200),
+				}
 				if c.query != nil {
 					options = append(options, webtest.WithQuery(c.query))
 				}
+
 				got, _, teardown := client.Do(t, "GET", c.path, options...)
 				defer teardown()
 
