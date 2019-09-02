@@ -11,6 +11,9 @@ import (
 	"github.com/podhmo/go-webtest/testclient"
 )
 
+// Option :
+type Option func(*Config)
+
 // Response :
 type Response = testclient.Response
 
@@ -30,53 +33,35 @@ type Internal interface {
 // Client :
 type Client struct {
 	Internal Internal
-	Config   *Config
-}
-
-// Copy :
-func (c *Client) Copy() *Client {
-	return &Client{
-		Internal: c.Internal,
-		Config:   c.Config.Copy(),
-	}
-}
-
-// Bind :
-func (c *Client) Bind(options ...func(*Config)) *Client {
-	newClient := c.Copy()
-	for _, opt := range options {
-		opt(newClient.Config)
-	}
-	return newClient
 }
 
 // GET :
-func (c *Client) GET(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+func (c *Client) GET(t testing.TB, path string, options ...Option) (Response, error, func()) {
 	return c.Do(t, "GET", path, options...)
 }
 
 // POST :
-func (c *Client) POST(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+func (c *Client) POST(t testing.TB, path string, options ...Option) (Response, error, func()) {
 	return c.Do(t, "POST", path, options...)
 }
 
 // PUT :
-func (c *Client) PUT(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+func (c *Client) PUT(t testing.TB, path string, options ...Option) (Response, error, func()) {
 	return c.Do(t, "PUT", path, options...)
 }
 
 // PATCH :
-func (c *Client) PATCH(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+func (c *Client) PATCH(t testing.TB, path string, options ...Option) (Response, error, func()) {
 	return c.Do(t, "PATCH", path, options...)
 }
 
 // DELETE :
-func (c *Client) DELETE(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+func (c *Client) DELETE(t testing.TB, path string, options ...Option) (Response, error, func()) {
 	return c.Do(t, "DELETE", path, options...)
 }
 
 // HEAD :
-func (c *Client) HEAD(t testing.TB, path string, options ...func(*Config)) (Response, error, func()) {
+func (c *Client) HEAD(t testing.TB, path string, options ...Option) (Response, error, func()) {
 	return c.Do(t, "HEAD", path, options...)
 }
 
@@ -85,9 +70,9 @@ func (c *Client) Do(
 	t testing.TB,
 	method string,
 	path string,
-	options ...func(*Config),
+	options ...Option,
 ) (Response, error, func()) {
-	config := c.Config.Copy()
+	config := NewConfig()
 	for _, opt := range options {
 		opt(config)
 	}
@@ -103,9 +88,9 @@ func (c *Client) Do(
 func (c *Client) DoFromRequest(
 	t testing.TB,
 	req *http.Request,
-	options ...func(*Config),
+	options ...Option,
 ) (Response, error, func()) {
-	config := c.Config.Copy()
+	config := NewConfig()
 	for _, opt := range options {
 		opt(config)
 	}
@@ -136,44 +121,29 @@ func (c *Client) communicate(
 }
 
 // NewClientFromTestServer :
-func NewClientFromTestServer(ts *httptest.Server, options ...func(*Config)) *Client {
-	c := NewConfig()
-	for _, opt := range options {
-		opt(c)
-	}
+func NewClientFromTestServer(ts *httptest.Server) *Client {
 	return &Client{
 		Internal: &testclient.RealClient{
 			URL: ts.URL,
 		},
-		Config: c,
 	}
 }
 
 // NewClientFromHandler :
-func NewClientFromHandler(handler http.Handler, options ...func(*Config)) *Client {
-	c := NewConfig()
-	for _, opt := range options {
-		opt(c)
-	}
+func NewClientFromHandler(handler http.Handler) *Client {
 	return &Client{
 		Internal: &testclient.FakeClient{
 			Handler: handler,
 		},
-		Config: c,
 	}
 }
 
 // NewClientFromURL :
-func NewClientFromURL(url string, options ...func(*Config)) *Client {
-	c := NewConfig()
-	for _, opt := range options {
-		opt(c)
-	}
+func NewClientFromURL(url string) *Client {
 	return &Client{
 		Internal: &testclient.RealClient{
 			URL: url,
 		},
-		Config: c,
 	}
 }
 
@@ -211,21 +181,21 @@ func (c *Config) Copy() *Config {
 }
 
 // WithBasePath set base path
-func WithBasePath(basePath string) func(*Config) {
+func WithBasePath(basePath string) Option {
 	return func(c *Config) {
 		c.ClientConfig.BasePath = basePath
 	}
 }
 
 // WithQuery :
-func WithQuery(query url.Values) func(*Config) {
+func WithQuery(query url.Values) Option {
 	return func(c *Config) {
 		c.ClientConfig.Query = query
 	}
 }
 
 // WithForm setup as send form-data request
-func WithForm(data url.Values) func(*Config) {
+func WithForm(data url.Values) Option {
 	return func(c *Config) {
 		if c.ClientConfig.Body != nil {
 			panic("body is already set, enable to set body only once") // xxx
@@ -238,7 +208,7 @@ func WithForm(data url.Values) func(*Config) {
 }
 
 // WithJSON setup as json request
-func WithJSON(body io.Reader) func(*Config) {
+func WithJSON(body io.Reader) Option {
 	return func(c *Config) {
 		if c.ClientConfig.Body != nil {
 			panic("body is already set, enable to set body only once") // xxx
@@ -251,14 +221,14 @@ func WithJSON(body io.Reader) func(*Config) {
 }
 
 // WithModifyRequest adds request modifyRequest
-func WithModifyRequest(modifyRequest func(*http.Request)) func(*Config) {
+func WithModifyRequest(modifyRequest func(*http.Request)) Option {
 	return func(c *Config) {
 		c.ModifyRequests = append(c.ModifyRequests, modifyRequest)
 	}
 }
 
 // WithRoundTripperDecorator with client side middleware for roundTripper
-func WithRoundTripperDecorator(decorator testclient.RoundTripperDecorator) func(*Config) {
+func WithRoundTripperDecorator(decorator testclient.RoundTripperDecorator) Option {
 	return func(c *Config) {
 		c.ClientConfig.Decorator = decorator
 	}
