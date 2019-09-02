@@ -31,6 +31,7 @@ func (c *FakeClient) Do(
 
 	transport := getDecoratepedTransport(c, config.Decorator)
 	res, err := transport.RoundTrip(req)
+	res.Request = req
 
 	adapter = NewResponseAdapter(
 		func() *http.Response {
