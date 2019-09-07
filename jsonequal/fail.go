@@ -8,6 +8,7 @@ import (
 
 // FailPlain :
 func FailPlain(
+	c *Caller,
 	left interface{},
 	right interface{},
 	lb []byte,
@@ -15,16 +16,17 @@ func FailPlain(
 ) error {
 	ls, rs := string(lb), string(rb)
 	if ls == rs {
-		msg := "not equal json\nleft (%[1]T):\n	%[3]s\nright (%[2]T):\n	%[4]s"
-		return fmt.Errorf(msg, left, right, ls, rs)
+		msg := "%[5]s%[6]s (%[1]T):\n	%[3]s\n%[7]s (%[2]T):\n	%[4]s"
+		return fmt.Errorf(msg, left, right, ls, rs, c.Prefix, c.LeftName, c.RightName)
 	}
 	// todo : more redable expression
-	msg := "not equal json\nleft:\n	%[3]s\nright:\n	%[4]s"
-	return fmt.Errorf(msg, left, right, ls, rs)
+	msg := "%[5]s%[6]s:\n	%[3]s\n%[7]s:\n	%[4]s"
+	return fmt.Errorf(msg, left, right, ls, rs, c.Prefix, c.LeftName, c.RightName)
 }
 
 // FailJSONDiff :
 func FailJSONDiff(
+	c *Caller,
 	left interface{},
 	right interface{},
 	lb []byte,
@@ -32,5 +34,7 @@ func FailJSONDiff(
 ) error {
 	options := jsondiff.DefaultConsoleOptions()
 	diff, s := jsondiff.Compare(lb, rb, &options)
-	return fmt.Errorf("%s\n%s\n%s", diff.String(), s, FailPlain(left, right, lb, rb).Error())
+	prefix := c.Prefix
+	c.Prefix = "\n"
+	return fmt.Errorf("%s (status=%s)\n%s\n%s", prefix, diff.String(), s, FailPlain(c, left, right, lb, rb).Error())
 }

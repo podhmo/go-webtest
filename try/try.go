@@ -50,11 +50,15 @@ func (it It) With(
 			actual = got.JSONData()
 		}
 
-		noerror.Should(t,
-			jsonequal.ShouldBeSame(
-				jsonequal.From(actual),
-				jsonequal.From(it.Want),
-			),
+		mismatch := jsonequal.ShouldBeSame(
+			jsonequal.From(actual),
+			jsonequal.From(it.Want),
+			jsonequal.WithPrefix("jsondiff, got and want is not same."),
+			jsonequal.WithLeftName("left (got) "),
+			jsonequal.WithRightName("right (want) "),
 		)
+		if mismatch != nil {
+			t.Errorf("%s", mismatch)
+		}
 	}
 }
