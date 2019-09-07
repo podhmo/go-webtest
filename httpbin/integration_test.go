@@ -91,42 +91,35 @@ func TestIt(t *testing.T) {
 
 	t.Run("auth", func(t *testing.T) {
 		cases := []struct {
-			user      string
-			pass      string
-			code      int
-			assertion webtest.Assertion
+			code int
+			user string
+			pass string
 		}{
 			{
 				code: 200,
-				user: "user", pass: "pass",
-				assertion: func(t *testing.T, got webtest.Response) {
-					noerror.Should(t,
-						jsonequal.ShouldBeSame(
-							jsonequal.From(got.JSONData()),
-							jsonequal.FromString(`{"authenticated": true, "user": "user"}`),
-						),
-					)
-				},
+				user: "user",
+				pass: "pass",
 			},
 			{
 				code: 401,
-				user: "user", pass: "another",
+				user: "user",
+				pass: "another",
 			},
 		}
-
 		for _, c := range cases {
 			c := c
 			t.Run(fmt.Sprintf("%d", c.code), func(t *testing.T) {
-				webtest.
-					Try(t, c.assertion).
-					With(client.Get("/auth/basic-auth/user/pass",
-						webtest.WithTripperware(
-							tripperware.ExpectCode(t, c.code),
-						),
-						webtest.WithModifyRequest(func(req *http.Request) {
-							req.SetBasicAuth(c.user, c.pass)
-						}),
-					))
+				var want interface{}
+
+				webtest.Try{
+					Code: c.code,
+					Data: &want,
+				}.Do(t, client,
+					"GET", "/auth/basic-auth/user/pass",
+					webtest.WithModifyRequest(func(req *http.Request) {
+						req.SetBasicAuth(c.user, c.pass)
+					}),
+				)
 			})
 		}
 	})
