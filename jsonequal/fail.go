@@ -34,6 +34,7 @@ func FailJSONDiff(
 ) error {
 	options := jsondiff.DefaultConsoleOptions()
 	diff, s := jsondiff.Compare(lb, rb, &options)
+	prefix := c.Prefix
 	c.Prefix = "\n"
-	return fmt.Errorf("diff %s\n%s\n%s", diff.String(), s, FailPlain(c, left, right, lb, rb).Error())
+	return fmt.Errorf("%s (status=%s)\n%s\n%s", prefix, diff.String(), s, FailPlain(c, left, right, lb, rb).Error())
 }
