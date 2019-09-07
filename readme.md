@@ -1,23 +1,33 @@
 [![CircleCI](https://circleci.com/gh/podhmo/go-webtest.svg?style=svg)](https://circleci.com/gh/podhmo/go-webtest)
 
-## go-webtest
+# go-webtest
 
-easy is better than simple.
+Sometimes, easy is better than simple.
 
 features
 
 - handling response by [custom interface](https://godoc.org/github.com/podhmo/go-webtest/testclient#Response) 
 - debug tracing when `DEBUG=1`
 - snapshot testing (if update snapshot, `SNAPSHOT=1` or `SNAPSHOT=<golden file path>`)
-- json diff
+- json diff with https://github.com/nsf/jsondiff
 
-### examples
+## examples
 
-(full test code is [here](./integration_test.go), the handler is defined [here](https://github.com/podhmo/go-webtest/blob/10353a9f1e700503028b420bf3068781030e5dac/integration_test.go#L25-L43))
+full test code is [here](./integration_test.go), the test target handler is defined [here](https://github.com/podhmo/go-webtest/blob/10353a9f1e700503028b420bf3068781030e5dac/integration_test.go#L25-L43)
 
-#### with webtest
+### with webtest
 
 ```go
+import (
+	"net/http"
+	"testing"
+
+	webtest "github.com/podhmo/go-webtest"
+	"github.com/podhmo/go-webtest/jsonequal"
+	"github.com/podhmo/go-webtest/tripperware"
+	"github.com/podhmo/noerror"
+)
+
 c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
 var want interface{}
 got, err := c.Post("/",
@@ -40,6 +50,14 @@ noerror.Should(t,
 ### with try package (shortcut)
 
 ```go
+import (
+	"net/http"
+	"testing"
+
+	webtest "github.com/podhmo/go-webtest"
+	"github.com/podhmo/go-webtest/try"
+)
+
 c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
 
 var want interface{}
@@ -55,9 +73,36 @@ try.It{
 )
 ```
 
-#### without-webtest (but using snapshot testing)
+If modify request is not needed, it is also ok, when the response does not include *semi-random value* (for example the value of now time).
 
 ```go
+c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
+
+var want interface{}
+try.It{
+	Code: 200,
+	Want: &want,
+}.With(t, c,
+	"POST", "/",
+	webtest.WithJSON(bytes.NewBufferString(`{"values": [1,2,3]}`)),
+)
+```
+
+### without-webtest (but using snapshot testing)
+
+```go
+import (
+	"bytes"
+	"encoding/json"
+	"io/ioutil"
+	"net/http"
+	"net/http/httptest"
+	"reflect"
+	"testing"
+
+	"github.com/podhmo/go-webtest/snapshot"
+)
+
 w := httptest.NewRecorder()
 req := httptest.NewRequest("POST", "/", bytes.NewBufferString(`{"values": [1,2,3]}`))
 req.Header.Set("Content-Type", "application/json")
@@ -86,15 +131,40 @@ if !reflect.DeepEqual(want, got) {
 }
 ```
 
-### example output if tests are failed
+## the location of snapshot data
+
+The snapshot data is saved in `testdata/<test function name>.golden` (e.g. testdata/TestHandler/try.golden) .
+
+```json
+{
+  "modifiedAt": "2019-09-07T21:40:30.70331035+09:00",
+  "data": {
+    "request": {
+      "method": "POST",
+      "path": "/"
+    },
+    "response": {
+      "data": {
+        "result": 6
+      },
+      "statusCode": 200
+    }
+  }
+}
+```
+
+## example output if tests are failed
 
 Output examples.
 
-#### debug trace (this test is not failed)
+### ✅ debug trace (this test is not failed)
 
 ```console
-$ DEBUG=1 go test
-2019/09/08 08:13:28 builtin debug trace is activated
+$ DEBUG=1 go test -v
+2019/09/08 08:42:56 builtin debug trace is activated
+=== RUN   TestHandler
+=== RUN   TestHandler/plain
+=== RUN   TestHandler/webtest
 	Request : ------------------------------
 	POST / HTTP/1.1
 	Host: example.com
@@ -109,6 +179,7 @@ $ DEBUG=1 go test
 	
 	{"result":6}
 	----------------------------------------
+=== RUN   TestHandler/try
 	Request : ------------------------------
 	POST / HTTP/1.1
 	Host: example.com
@@ -123,11 +194,18 @@ $ DEBUG=1 go test
 	
 	{"result":6}
 	----------------------------------------
+--- PASS: TestHandler (0.00s)
+    --- PASS: TestHandler/plain (0.00s)
+        snapshot.go:56: load testdata: "testdata/TestHandler/plain.golden"
+    --- PASS: TestHandler/webtest (0.00s)
+        snapshot.go:56: load testdata: "testdata/TestHandler/webtest.golden"
+    --- PASS: TestHandler/try (0.00s)
+        snapshot.go:56: load testdata: "testdata/TestHandler/try.golden"
 PASS
 ok  	github.com/podhmo/go-webtest	0.005s
 ```
 
-#### unexpected status
+### ❌ unexpected status
 
 ```console
 $ go test
@@ -138,7 +216,7 @@ $ go test
              response: {"result":6}
 ```
 
-#### unexpected response
+### ❌ unexpected response
 
 ```console
 $ go test
@@ -156,7 +234,17 @@ $ go test
             	{"result":6}
 ```
 
+## sub packages
+
+### try
+
+todo
+
 ### snapshot
+
+todo
+
+#### snapshot/replace
 
 todo
 
@@ -164,6 +252,6 @@ todo
 
 todo
 
-### replace
+### testclient
 
 todo
