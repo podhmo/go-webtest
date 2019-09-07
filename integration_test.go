@@ -14,6 +14,7 @@ import (
 	"github.com/podhmo/go-webtest/jsonequal"
 	"github.com/podhmo/go-webtest/snapshot"
 	"github.com/podhmo/go-webtest/tripperware"
+	"github.com/podhmo/go-webtest/try"
 	"github.com/podhmo/noerror"
 )
 
@@ -93,16 +94,15 @@ func TestHandler(t *testing.T) {
 
 	t.Run("try", func(t *testing.T) {
 		c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
-		var expected interface{}
 
-		webtest.Try{
+		var want interface{}
+		try.It{
 			Code: 200,
-			Data: &expected,
-			ModifyResponse: func(res webtest.Response) (actual interface{}) {
-				actual = res.JSONData()
-				return
+			Want: &want,
+			ModifyResponse: func(res webtest.Response) (got interface{}) {
+				return res.JSONData()
 			},
-		}.Do(t, c,
+		}.With(t, c,
 			"POST", "/",
 			webtest.WithJSON(bytes.NewBufferString(`{"values": [1,2,3]}`)),
 		)

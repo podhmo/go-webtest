@@ -10,6 +10,7 @@ import (
 	"github.com/podhmo/go-webtest/httpbin/httpbintest"
 	"github.com/podhmo/go-webtest/jsonequal"
 	"github.com/podhmo/go-webtest/tripperware"
+	"github.com/podhmo/go-webtest/try"
 	"github.com/podhmo/noerror"
 )
 
@@ -111,10 +112,10 @@ func TestIt(t *testing.T) {
 			t.Run(fmt.Sprintf("%d", c.code), func(t *testing.T) {
 				var want interface{}
 
-				webtest.Try{
+				try.It{
 					Code: c.code,
-					Data: &want,
-				}.Do(t, client,
+					Want: &want,
+				}.With(t, client,
 					"GET", "/auth/basic-auth/user/pass",
 					webtest.WithModifyRequest(func(req *http.Request) {
 						req.SetBasicAuth(c.user, c.pass)
