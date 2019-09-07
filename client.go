@@ -36,33 +36,33 @@ type Client struct {
 	Internal Internal
 }
 
-// GET :
-func (c *Client) GET(path string, options ...Option) (Response, error) {
+// Get :
+func (c *Client) Get(path string, options ...Option) (Response, error) {
 	return c.Do("GET", path, options...)
 }
 
-// POST :
-func (c *Client) POST(path string, options ...Option) (Response, error) {
+// Post :
+func (c *Client) Post(path string, options ...Option) (Response, error) {
 	return c.Do("POST", path, options...)
 }
 
-// PUT :
-func (c *Client) PUT(path string, options ...Option) (Response, error) {
+// Put :
+func (c *Client) Put(path string, options ...Option) (Response, error) {
 	return c.Do("PUT", path, options...)
 }
 
-// PATCH :
-func (c *Client) PATCH(path string, options ...Option) (Response, error) {
+// Patch :
+func (c *Client) Patch(path string, options ...Option) (Response, error) {
 	return c.Do("PATCH", path, options...)
 }
 
-// DELETE :
-func (c *Client) DELETE(path string, options ...Option) (Response, error) {
+// Delete :
+func (c *Client) Delete(path string, options ...Option) (Response, error) {
 	return c.Do("DELETE", path, options...)
 }
 
-// HEAD :
-func (c *Client) HEAD(path string, options ...Option) (Response, error) {
+// Head :
+func (c *Client) Head(path string, options ...Option) (Response, error) {
 	return c.Do("HEAD", path, options...)
 }
 

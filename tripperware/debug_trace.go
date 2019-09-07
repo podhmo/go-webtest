@@ -90,8 +90,8 @@ func (t *DebugTracer) RoundTripWith(inner http.RoundTripper, req *http.Request) 
 	return resp, nil
 }
 
-// NewDebugTracer :
-func NewDebugTracer() Ware {
+// DebugTrace :
+func DebugTrace() Ware {
 	t := &DebugTracer{}
 	return func(next http.RoundTripper) http.RoundTripper {
 		return RoundTripFunc(func(req *http.Request) (*http.Response, error) {

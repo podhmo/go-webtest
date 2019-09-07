@@ -19,7 +19,7 @@ func TestIt(t *testing.T) {
 	client := webtest.NewClientFromTestServer(ts)
 
 	t.Run("200", func(t *testing.T) {
-		got, err := client.GET("/status/200")
+		got, err := client.Get("/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.Code(), err),
 			"response: ", got.LazyText(), // add more contextual information?
@@ -39,7 +39,7 @@ func TestIt(t *testing.T) {
 
 	t.Run("with hooks", func(t *testing.T) {
 		t.Run("200, status check", func(t *testing.T) {
-			got, err := client.GET("/status/200",
+			got, err := client.Get("/status/200",
 				webtest.WithTripperware(
 					tripperware.ExpectCode(t, 200),
 				),
@@ -70,7 +70,7 @@ func TestIt(t *testing.T) {
 			for _, c := range cases {
 				c := c
 				t.Run(c.msg, func(t *testing.T) {
-					got, err := client.GET(c.path,
+					got, err := client.Get(c.path,
 						webtest.WithTripperware(
 							tripperware.GetExpectedDataFromSnapshot(t, &want),
 						),
@@ -119,7 +119,7 @@ func TestIt(t *testing.T) {
 			t.Run(fmt.Sprintf("%d", c.code), func(t *testing.T) {
 				webtest.
 					Try(t, c.assertion).
-					With(client.GET("/auth/basic-auth/user/pass",
+					With(client.Get("/auth/basic-auth/user/pass",
 						webtest.WithTripperware(
 							tripperware.ExpectCode(t, c.code),
 						),
