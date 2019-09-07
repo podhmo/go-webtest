@@ -6,6 +6,7 @@ import (
 	"sync"
 
 	"github.com/podhmo/go-webtest/testclient/internal"
+	"github.com/podhmo/go-webtest/tripperware"
 )
 
 // FakeClient :
@@ -25,12 +26,15 @@ func (c *FakeClient) RoundTrip(req *http.Request) (*http.Response, error) {
 func (c *FakeClient) Do(
 	req *http.Request,
 	config *Config,
-) (Response, error, func()) {
+) (Response, error) {
 	var adapter *ResponseAdapter
 	var once sync.Once
 
-	transport := getDecoratepedTransport(c, config.Decorator)
-	res, err := transport.RoundTrip(req)
+	stack := tripperware.Stack(append(defaultTripperwares, config.Tripperwares...)...)
+	res, err := stack.DecorateRoundTripper(c).RoundTrip(req)
+	if err != nil {
+		return nil, err
+	}
 	res.Request = req
 
 	adapter = NewResponseAdapter(
@@ -41,7 +45,7 @@ func (c *FakeClient) Do(
 			return res
 		},
 	)
-	return adapter, err, adapter.Close
+	return adapter, err
 }
 
 // NewRequest :

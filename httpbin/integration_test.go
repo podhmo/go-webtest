@@ -7,9 +7,9 @@ import (
 	"testing"
 
 	webtest "github.com/podhmo/go-webtest"
-	"github.com/podhmo/go-webtest/hook"
 	"github.com/podhmo/go-webtest/httpbin/httpbintest"
 	"github.com/podhmo/go-webtest/jsonequal"
+	"github.com/podhmo/go-webtest/tripperware"
 	"github.com/podhmo/noerror"
 )
 
@@ -19,12 +19,12 @@ func TestIt(t *testing.T) {
 	client := webtest.NewClientFromTestServer(ts)
 
 	t.Run("200", func(t *testing.T) {
-		got, err, teardown := client.GET("/status/200")
+		got, err := client.GET("/status/200")
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.Code(), err),
 			"response: ", got.LazyText(), // add more contextual information?
 		)
-		defer teardown()
+		defer func() { noerror.Should(t, got.Close()) }()
 
 		// todo: assertion response
 		noerror.Should(t,
@@ -39,11 +39,13 @@ func TestIt(t *testing.T) {
 
 	t.Run("with hooks", func(t *testing.T) {
 		t.Run("200, status check", func(t *testing.T) {
-			got, err, teardown := client.GET("/status/200",
-				hook.ExpectCode(t, 200),
+			got, err := client.GET("/status/200",
+				webtest.WithTripperware(
+					tripperware.ExpectCode(t, 200),
+				),
 			)
 			noerror.Must(t, err)
-			defer teardown()
+			defer func() { noerror.Should(t, got.Close()) }()
 
 			noerror.Should(t,
 				jsonequal.ShouldBeSame(
@@ -68,11 +70,13 @@ func TestIt(t *testing.T) {
 			for _, c := range cases {
 				c := c
 				t.Run(c.msg, func(t *testing.T) {
-					got, err, teardown := client.GET(c.path,
-						hook.GetExpectedDataFromSnapshot(t, &want),
+					got, err := client.GET(c.path,
+						webtest.WithTripperware(
+							tripperware.GetExpectedDataFromSnapshot(t, &want),
+						),
 					)
 					noerror.Must(t, err)
-					defer teardown()
+					defer func() { noerror.Should(t, got.Close()) }()
 
 					noerror.Should(t,
 						jsonequal.ShouldBeSame(
@@ -96,12 +100,10 @@ func TestIt(t *testing.T) {
 				code: 200,
 				user: "user", pass: "pass",
 				assertion: func(t *testing.T, got webtest.Response) {
-					var want interface{}
-					noerror.Should(t, hook.GetExpectedDataFromSnapshot(t, &want)(got))
 					noerror.Should(t,
 						jsonequal.ShouldBeSame(
 							jsonequal.From(got.JSONData()),
-							jsonequal.From(want),
+							jsonequal.FromString(`{"authenticated": true, "user": "user"}`),
 						),
 					)
 				},
@@ -118,7 +120,9 @@ func TestIt(t *testing.T) {
 				webtest.
 					Try(t, c.assertion).
 					With(client.GET("/auth/basic-auth/user/pass",
-						hook.ExpectCode(t, c.code),
+						webtest.WithTripperware(
+							tripperware.ExpectCode(t, c.code),
+						),
 						webtest.WithModifyRequest(func(req *http.Request) {
 							req.SetBasicAuth(c.user, c.pass)
 						}),
@@ -133,12 +137,13 @@ func TestUnit(t *testing.T) {
 	client := webtest.NewClientFromHandler(handler)
 
 	t.Run("200", func(t *testing.T) {
-		got, err, teardown := client.Do("GET", "/status/200")
+		got, err := client.Do("GET", "/status/200")
+		noerror.Must(t, err)
 		noerror.Must(t,
 			noerror.Equal(200).ActualWithError(got.Code(), err),
 			"response: ", got.LazyText(), // add more contextual information?
 		)
-		defer teardown()
+		defer func() { noerror.Should(t, got.Close()) }()
 
 		// todo: assertion response
 		noerror.Should(t,
@@ -186,14 +191,17 @@ func TestUnit(t *testing.T) {
 			c := c
 			t.Run(fmt.Sprintf("case%d", i), func(t *testing.T) {
 				options := []webtest.Option{
-					hook.ExpectCode(t, 200),
+					webtest.WithTripperware(
+						tripperware.ExpectCode(t, 200),
+					),
 				}
 				if c.query != nil {
 					options = append(options, webtest.WithQuery(c.query))
 				}
 
-				got, _, teardown := client.Do("GET", c.path, options...)
-				defer teardown()
+				got, err := client.Do("GET", c.path, options...)
+				noerror.Must(t, err)
+				defer func() { noerror.Should(t, got.Close()) }()
 
 				var data map[string]interface{}
 				noerror.Must(t, got.ParseJSONData(&data))

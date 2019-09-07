@@ -13,7 +13,7 @@ import (
 
 // Response :
 type Response interface {
-	Close()
+	io.Closer
 
 	Code() int
 	Header() http.Header
@@ -58,15 +58,16 @@ func (res *ResponseAdapter) Raw() *http.Response {
 }
 
 // Close :
-func (res *ResponseAdapter) Close() {
+func (res *ResponseAdapter) Close() error {
 	res.m.Lock()
 	defer res.m.Unlock()
 	for _, teardown := range res.teardowns {
 		if err := teardown(); err != nil {
-			panic(err)
+			return err
 		}
 	}
 	res.teardowns = nil
+	return nil
 }
 
 func (res *ResponseAdapter) AddTeardown(fn func() error) {

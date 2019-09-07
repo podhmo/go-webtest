@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/podhmo/go-webtest/testclient"
+	"github.com/podhmo/go-webtest/tripperware"
 )
 
 // Option :
@@ -24,17 +25,9 @@ func (f optionFunc) Apply(c *Config) {
 // Response :
 type Response = testclient.Response
 
-// Hook :
-type Hook func(Response) error
-
-// Apply :
-func (hook Hook) Apply(c *Config) {
-	c.Hooks = append(c.Hooks, hook)
-}
-
 // Internal :
 type Internal interface {
-	Do(req *http.Request, clientConfig *testclient.Config) (Response, error, func())
+	Do(req *http.Request, clientConfig *testclient.Config) (Response, error)
 	NewRequest(method string, path string, clientConfig *testclient.Config) (*http.Request, error)
 }
 
@@ -44,32 +37,32 @@ type Client struct {
 }
 
 // GET :
-func (c *Client) GET(path string, options ...Option) (Response, error, func()) {
+func (c *Client) GET(path string, options ...Option) (Response, error) {
 	return c.Do("GET", path, options...)
 }
 
 // POST :
-func (c *Client) POST(path string, options ...Option) (Response, error, func()) {
+func (c *Client) POST(path string, options ...Option) (Response, error) {
 	return c.Do("POST", path, options...)
 }
 
 // PUT :
-func (c *Client) PUT(path string, options ...Option) (Response, error, func()) {
+func (c *Client) PUT(path string, options ...Option) (Response, error) {
 	return c.Do("PUT", path, options...)
 }
 
 // PATCH :
-func (c *Client) PATCH(path string, options ...Option) (Response, error, func()) {
+func (c *Client) PATCH(path string, options ...Option) (Response, error) {
 	return c.Do("PATCH", path, options...)
 }
 
 // DELETE :
-func (c *Client) DELETE(path string, options ...Option) (Response, error, func()) {
+func (c *Client) DELETE(path string, options ...Option) (Response, error) {
 	return c.Do("DELETE", path, options...)
 }
 
 // HEAD :
-func (c *Client) HEAD(path string, options ...Option) (Response, error, func()) {
+func (c *Client) HEAD(path string, options ...Option) (Response, error) {
 	return c.Do("HEAD", path, options...)
 }
 
@@ -78,7 +71,7 @@ func (c *Client) Do(
 	method string,
 	path string,
 	options ...Option,
-) (Response, error, func()) {
+) (Response, error) {
 	config := NewConfig()
 	for _, opt := range options {
 		opt.Apply(config)
@@ -86,7 +79,7 @@ func (c *Client) Do(
 
 	req, err := c.Internal.NewRequest(method, path, config.ClientConfig)
 	if err != nil {
-		return nil, err, nil
+		return nil, err
 	}
 	return c.communicate(req, config)
 }
@@ -95,7 +88,7 @@ func (c *Client) Do(
 func (c *Client) DoFromRequest(
 	req *http.Request,
 	options ...Option,
-) (Response, error, func()) {
+) (Response, error) {
 	config := NewConfig()
 	for _, opt := range options {
 		opt.Apply(config)
@@ -107,21 +100,15 @@ func (c *Client) DoFromRequest(
 func (c *Client) communicate(
 	req *http.Request,
 	config *Config,
-) (Response, error, func()) {
+) (Response, error) {
 	for _, modifyRequest := range config.ModifyRequests {
 		modifyRequest(req)
 	}
 
-	got, err, teardown := c.Internal.Do(req, config.ClientConfig)
-	if err != nil {
-		return got, err, teardown
+	doRequest := func(req *http.Request) (Response, error) {
+		return c.Internal.Do(req, config.ClientConfig)
 	}
-	for _, hook := range config.Hooks {
-		if err := hook(got); err != nil {
-			return got, err, teardown
-		}
-	}
-	return got, nil, teardown
+	return doRequest(req)
 }
 
 // NewClientFromTestServer :
@@ -158,7 +145,6 @@ type Config struct {
 	ClientConfig *testclient.Config
 
 	ModifyRequests []func(*http.Request) // request modifyRequests
-	Hooks          []Hook                // client hooks
 }
 
 // NewConfig :
@@ -175,10 +161,6 @@ func (c *Config) Copy() *Config {
 		ModifyRequests: append(
 			make([]func(*http.Request), 0, len(c.ModifyRequests)),
 			c.ModifyRequests...,
-		),
-		Hooks: append(
-			make([]Hook, 0, len(c.Hooks)),
-			c.Hooks...,
 		),
 		ClientConfig: c.ClientConfig.Copy(),
 	}
@@ -231,9 +213,9 @@ func WithModifyRequest(modifyRequest func(*http.Request)) Option {
 	})
 }
 
-// WithRoundTripperDecorator with client side middleware for roundTripper
-func WithRoundTripperDecorator(decorator testclient.RoundTripperDecorator) Option {
+// WithTripperware with client side middleware for roundTripper
+func WithTripperware(wares ...tripperware.Ware) Option {
 	return optionFunc(func(c *Config) {
-		c.ClientConfig.Decorator = decorator
+		c.ClientConfig.Tripperwares = append(c.ClientConfig.Tripperwares, wares...)
 	})
 }

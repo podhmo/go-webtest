@@ -2,6 +2,8 @@ package webtest
 
 import (
 	"testing"
+
+	"github.com/podhmo/noerror"
 )
 
 // Assertion :
@@ -29,12 +31,11 @@ type TryWithAssertion struct {
 }
 
 // With :
-func (a *TryWithAssertion) With(got Response, err error, teardown func()) {
+func (a *TryWithAssertion) With(got Response, err error) {
 	a.t.Helper()
-	if err != nil {
-		a.t.Fatalf("try: %+v", err)
-	}
-	defer teardown()
+	noerror.Must(a.t, err)
+	defer func() { noerror.Should(a.t, got.Close()) }()
+
 	for _, assert := range a.assertions {
 		assert(a.t, got)
 	}

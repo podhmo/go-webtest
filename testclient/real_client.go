@@ -5,6 +5,7 @@ import (
 	"sync"
 
 	"github.com/podhmo/go-webtest/testclient/internal"
+	"github.com/podhmo/go-webtest/tripperware"
 )
 
 // RealClient :
@@ -17,8 +18,10 @@ type RealClient struct {
 func (c *RealClient) Do(
 	req *http.Request,
 	config *Config,
-) (Response, error, func()) {
-	client := getInternalClient(c.Client, config.Decorator)
+) (Response, error) {
+	stack := tripperware.Stack(append(defaultTripperwares, config.Tripperwares...)...)
+	cloned := true
+	client := stack.DecorateClient(c.Client, cloned)
 
 	var adapter *ResponseAdapter
 	var raw *http.Response
@@ -26,7 +29,7 @@ func (c *RealClient) Do(
 
 	raw, err := client.Do(req)
 	if err != nil {
-		return nil, err, nil
+		return nil, err
 	}
 
 	adapter = NewResponseAdapter(
@@ -37,7 +40,7 @@ func (c *RealClient) Do(
 			return raw
 		},
 	)
-	return adapter, err, adapter.Close
+	return adapter, err
 }
 
 // NewRequest :
