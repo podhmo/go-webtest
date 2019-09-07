@@ -10,9 +10,13 @@ import (
 
 // Caller :
 type Caller struct {
+	Prefix    string
+	LeftName  string
+	RightName string
+
 	EqualFunc func(left interface{}, right interface{}) bool
 	WrapfFunc func(error, string, ...interface{}) error
-	FailFunc  func(left interface{}, right interface{}, lb []byte, rb []byte) error
+	FailFunc  func(caller *Caller, left interface{}, right interface{}, lb []byte, rb []byte) error
 }
 
 // From :
@@ -88,13 +92,38 @@ func FromString(s string) func() (interface{}, []byte, error) {
 	return FromBytes([]byte(s))
 }
 
+// WithPrefix :
+func WithPrefix(s string) func(*Caller) {
+	return func(c *Caller) {
+		c.Prefix = s
+	}
+}
+
+// WithLeftName :
+func WithLeftName(s string) func(*Caller) {
+	return func(c *Caller) {
+		c.LeftName = s
+	}
+}
+
+// WithRightName :
+func WithRightName(s string) func(*Caller) {
+	return func(c *Caller) {
+		c.RightName = s
+	}
+}
+
 // ShouldBeSame :
 func ShouldBeSame(
 	lsrc func() (interface{}, []byte, error),
 	rsrc func() (interface{}, []byte, error),
 	options ...func(*Caller),
 ) error {
-	caller := Caller{}
+	caller := Caller{
+		Prefix:    "not equal json\n",
+		LeftName:  "left",
+		RightName: "right",
+	}
 	for _, opt := range options {
 		opt(&caller)
 	}
@@ -118,7 +147,7 @@ func ShouldBeSame(
 	}
 
 	if !caller.EqualFunc(lv, rv) {
-		return caller.WrapfFunc(caller.FailFunc(lv, rv, lb, rb), "on equal check")
+		return caller.WrapfFunc(caller.FailFunc(&caller, lv, rv, lb, rb), "on equal check")
 	}
 	return nil
 }
