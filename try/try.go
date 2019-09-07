@@ -53,7 +53,7 @@ func (it It) With(
 		mismatch := jsonequal.ShouldBeSame(
 			jsonequal.From(actual),
 			jsonequal.From(it.Want),
-			jsonequal.WithPrefix("got and want is not same."),
+			jsonequal.WithPrefix("jsondiff, got and want is not same."),
 			jsonequal.WithLeftName("left (got) "),
 			jsonequal.WithRightName("right (want) "),
 		)
