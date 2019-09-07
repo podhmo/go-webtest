@@ -21,11 +21,11 @@ type Response interface {
 
 	Raw() *http.Response
 
-	Extractor
-}
+// 	Extractor
+// }
 
-// Extractor :
-type Extractor interface {
+// // Extractor :
+// type Extractor interface {
 	ParseJSONData(val interface{}) error
 	JSONData() interface{}
 
