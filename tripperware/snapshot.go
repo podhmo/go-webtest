@@ -19,7 +19,7 @@ func GetExpectedDataFromSnapshot(
 		return RoundTripFunc(func(req *http.Request) (*http.Response, error) {
 			res, err := next.RoundTrip(req)
 			copied := internal.CopyResponse(res)
-			storedata, err := createSnapshotData(res, err)
+			storedata, err := createSnapshotData(res, req, err)
 
 			// assign (side-effect!!), want is response data
 			loaddata := snapshot.Take(t, storedata, options...)
@@ -38,7 +38,7 @@ func TakeSnapshot(
 		return RoundTripFunc(func(req *http.Request) (*http.Response, error) {
 			res, err := next.RoundTrip(req)
 			copied := internal.CopyResponse(res)
-			storedata, err := createSnapshotData(res, err)
+			storedata, err := createSnapshotData(res, req, err)
 			_ = snapshot.Take(t,
 				storedata,
 				append([]func(*snapshot.Config){snapshot.WithForceUpdate()}, options...)...,
@@ -48,25 +48,26 @@ func TakeSnapshot(
 	}
 }
 
-func createSnapshotData(res *http.Response, err error) (map[string]map[string]interface{}, error) {
+func createSnapshotData(res *http.Response, req *http.Request, err error) (map[string]map[string]interface{}, error) {
 	var data interface{}
-	decoder := json.NewDecoder(res.Body) // TODO: see Content-type
-	defer res.Body.Close()
 	if err == nil {
+		decoder := json.NewDecoder(res.Body) // TODO: see Content-type
+		defer res.Body.Close()
 		err = decoder.Decode(&data)
 	}
 	storedata := map[string]map[string]interface{}{
 		"response": map[string]interface{}{},
 	}
 	if err != nil {
-		storedata["response"]["error"] = err
+		storedata["error"] = map[string]interface{}{"message": err.Error()}
 	}
-	if res != nil {
-		req := res.Request
+	if req != nil {
 		storedata["request"] = map[string]interface{}{
 			"method": req.Method,
 			"path":   req.URL.Path + req.URL.RawQuery,
 		}
+	}
+	if res != nil {
 		storedata["response"]["statusCode"] = res.StatusCode
 		if data != nil {
 			storedata["response"]["data"] = data

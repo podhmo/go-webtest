@@ -9,6 +9,9 @@ import (
 
 // CopyResponse has Side effect
 func CopyResponse(res *http.Response) *http.Response {
+	if res == nil {
+		return nil
+	}
 	copied := *res
 	if res.Body == http.NoBody {
 		return &copied
