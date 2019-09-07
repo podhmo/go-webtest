@@ -2,7 +2,6 @@ package jsonequal
 
 import (
 	"encoding/json"
-	"fmt"
 	"io"
 	"reflect"
 
@@ -106,7 +105,7 @@ func ShouldBeSame(
 		caller.WrapfFunc = errors.WithMessagef
 	}
 	if caller.FailFunc == nil {
-		caller.FailFunc = defaultFail
+		caller.FailFunc = FailJSONDiff
 	}
 
 	lv, lb, err := lsrc()
@@ -131,20 +130,4 @@ func Equal(
 	options ...func(*Caller),
 ) bool {
 	return ShouldBeSame(lsrc, rsrc, options...) == nil
-}
-
-func defaultFail(
-	left interface{},
-	right interface{},
-	lb []byte,
-	rb []byte,
-) error {
-	ls, rs := string(lb), string(rb)
-	if ls == rs {
-		msg := "not equal json\nleft (%[1]T):\n	%[3]s\nright (%[2]T):\n	%[4]s"
-		return fmt.Errorf(msg, left, right, ls, rs)
-	}
-	// todo : more redable expression
-	msg := "not equal json\nleft:\n	%[3]s\nright:\n	%[4]s"
-	return fmt.Errorf(msg, left, right, ls, rs)
 }
