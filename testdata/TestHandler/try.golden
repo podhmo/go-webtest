@@ -1,0 +1,15 @@
+{
+  "modifiedAt": "2019-09-07T21:40:30.70331035+09:00",
+  "data": {
+    "request": {
+      "method": "POST",
+      "path": "/"
+    },
+    "response": {
+      "data": {
+        "result": 6
+      },
+      "statusCode": 200
+    }
+  }
+}

@@ -42,7 +42,7 @@ func Add(w http.ResponseWriter, req *http.Request) {
 }
 
 func TestHandler(t *testing.T) {
-	t.Run("without-webtest", func(t *testing.T) {
+	t.Run("plain", func(t *testing.T) {
 		w := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", "/", bytes.NewBufferString(`{"values": [1,2,3]}`))
 		req.Header.Set("Content-Type", "application/json")
@@ -71,7 +71,7 @@ func TestHandler(t *testing.T) {
 		}
 	})
 
-	t.Run("with-webtest", func(t *testing.T) {
+	t.Run("webtest", func(t *testing.T) {
 		c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
 		var want interface{}
 		got, err := c.Post("/",
@@ -88,6 +88,23 @@ func TestHandler(t *testing.T) {
 				jsonequal.From(got.JSONData()),
 				jsonequal.From(want),
 			),
+		)
+	})
+
+	t.Run("try", func(t *testing.T) {
+		c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
+		var expected interface{}
+
+		webtest.Try{
+			Code: 200,
+			Data: &expected,
+			ModifyResponse: func(res webtest.Response) (actual interface{}) {
+				actual = res.JSONData()
+				return
+			},
+		}.Do(t, c,
+			"POST", "/",
+			webtest.WithJSON(bytes.NewBufferString(`{"values": [1,2,3]}`)),
 		)
 	})
 }
