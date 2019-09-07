@@ -18,6 +18,6 @@ func init() {
 		return
 	}
 
-	defaultTripperwares = tripperware.Stack(tripperware.NewDebugTracer())
-	log.Println("builtin DebugRoundTripper is activated")
+	defaultTripperwares = tripperware.Stack(tripperware.DebugTrace())
+	log.Println("builtin debug trace is activated")
 }
