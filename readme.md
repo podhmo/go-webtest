@@ -216,7 +216,7 @@ ok  	github.com/podhmo/go-webtest	0.005s
 $ go test
 --- FAIL: TestHandler (0.00s)
     --- FAIL: TestHandler/try (0.00s)
-        snapshot.go:56: load testdata: "testdata/TestHandler/try.golden"
+        snapshot.go:56: load snapshot data: "testdata/TestHandler/try.golden"
         integration_test.go:103: unexpected error, status code, got is "200 OK", but want is "201 Created"
              response is {"result":6}
 ```
@@ -227,7 +227,7 @@ $ go test
 $ go test
 --- FAIL: TestHandler (0.00s)
     --- FAIL: TestHandler/try (0.00s)
-        snapshot.go:56: load testdata: "testdata/TestHandler/try.golden"
+        snapshot.go:56: load snapshot data: "testdata/TestHandler/try.golden"
         integration_test.go:105: on equal check: jsondiff, got and want is not same. (status=NoMatch)
             {
                 "result": 10 => 6
