@@ -25,13 +25,13 @@ func ExpectCode(t testing.TB, code int) Ware {
 			if _, err := io.Copy(&b, res.Body); err != nil {
 				return nil, err
 			}
-			return nil, &statusError{expected: code, response: res, text: b.String()}
+			return nil, &statusError{want: code, response: res, text: b.String()}
 		})
 	}
 }
 
 type statusError struct {
-	expected int
+	want int
 
 	response *http.Response
 	text     string
@@ -39,9 +39,11 @@ type statusError struct {
 
 func (err *statusError) Error() string {
 	return fmt.Sprintf(
-		"status code, expected %d, but actual %d\n response: %s",
-		err.expected,
+		"status code, got is \"%[1]d %[2]s\", but want is \"%[3]d %[4]s\"\n response is %[5]s",
 		err.response.StatusCode,
+		http.StatusText(err.response.StatusCode),
+		err.want,
+		http.StatusText(err.want),
 		err.text,
 	)
 }
