@@ -39,6 +39,7 @@ got, err := c.Post("/",
 )
 
 noerror.Must(t, err)
+defer func() { noerror.Must(t, got.Close()) }()
 noerror.Should(t,
 	jsonequal.ShouldBeSame(
 		jsonequal.From(got.JSONData()),
@@ -111,11 +112,8 @@ Add(w, req)
 res := w.Result()
 
 if res.StatusCode != 200 {
-	b, err := ioutil.ReadAll(res.Body)
+	b, _ := ioutil.ReadAll(res.Body)
 	t.Fatalf("status code, want 200, but got %d\n response:%s", res.StatusCode, string(b))
-	if err != nil {
-		t.Fatal(err)
-	}
 }
 
 var got interface{}
