@@ -218,7 +218,15 @@ $ go test
     --- FAIL: TestHandler/try (0.00s)
         snapshot.go:56: load snapshot data: "testdata/TestHandler/try.golden"
         integration_test.go:103: unexpected error, status code, got is "200 OK", but want is "201 Created"
-             response is {"result":6}
+            Response: ------------------------------
+            HTTP/1.1 200 OK
+            Connection: close
+            Content-Type: application/json
+            
+            {"result":6}
+            ----------------------------------------
+            
+FAIL
 ```
 
 ### ❌ unexpected response
@@ -237,6 +245,8 @@ $ go test
             	{"result":10}
             right (want) :
             	{"result":6}
+            
+FAIL
 ```
 
 ## sub packages
