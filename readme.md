@@ -28,24 +28,26 @@ import (
 	"github.com/podhmo/noerror"
 )
 
-c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
-var want interface{}
-got, err := c.Post("/",
-	webtest.WithJSON(bytes.NewBufferString(`{"values": [1,2,3]}`)),
-	webtest.WithTripperware(
-		tripperware.ExpectCode(t, 200),
-		tripperware.GetExpectedDataFromSnapshot(t, &want),
-	),
-)
+func TestWithWebtest(t *testing.T) {
+	c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
+	var want interface{}
+	got, err := c.Post("/",
+		webtest.WithJSON(bytes.NewBufferString(`{"values": [1,2,3]}`)),
+		webtest.WithTripperware(
+			tripperware.ExpectCode(t, 200),
+			tripperware.GetExpectedDataFromSnapshot(t, &want),
+		),
+	)
 
-noerror.Must(t, err)
-defer func() { noerror.Must(t, got.Close()) }()
-noerror.Should(t,
-	jsonequal.ShouldBeSame(
-		jsonequal.From(got.JSONData()),
-		jsonequal.From(want),
-	),
-)
+	noerror.Must(t, err)
+	defer func() { noerror.Must(t, got.Close()) }()
+	noerror.Should(t,
+		jsonequal.ShouldBeSame(
+			jsonequal.From(got.JSONData()),
+			jsonequal.From(want),
+		),
+	)
+}
 ```
 
 ### with try package (shortcut)
@@ -59,19 +61,22 @@ import (
 	"github.com/podhmo/go-webtest/try"
 )
 
-c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
 
-var want interface{}
-try.It{
-	Code: 200,
-	Want: &want,
-	ModifyResponse: func(res webtest.Response) (got interface{}) {
-		return res.JSONData()
-	},
-}.With(t, c,
-	"POST", "/",
-	webtest.WithJSON(bytes.NewBufferString(`{"values": [1,2,3]}`)),
-)
+func TestWithTry(t *testing.T) {
+	c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
+
+	var want interface{}
+	try.It{
+		Code: 200,
+		Want: &want,
+		ModifyResponse: func(res webtest.Response) (got interface{}) {
+			return res.JSONData()
+		},
+	}.With(t, c,
+		"POST", "/",
+		webtest.WithJSON(bytes.NewBufferString(`{"values": [1,2,3]}`)),
+	)
+}
 ```
 
 If modify request is not needed, it is also ok, when the response does not include *semi-random value* (for example the value of now time).
@@ -104,28 +109,30 @@ import (
 	"github.com/podhmo/go-webtest/snapshot"
 )
 
-w := httptest.NewRecorder()
-req := httptest.NewRequest("POST", "/", bytes.NewBufferString(`{"values": [1,2,3]}`))
-req.Header.Set("Content-Type", "application/json")
+func TestWithoutWebtest(t *testing.T) {
+	w := httptest.NewRecorder()
+	req := httptest.NewRequest("POST", "/", bytes.NewBufferString(`{"values": [1,2,3]}`))
+	req.Header.Set("Content-Type", "application/json")
 
-Add(w, req)
-res := w.Result()
+	Add(w, req)
+	res := w.Result()
 
-if res.StatusCode != 200 {
-	b, _ := ioutil.ReadAll(res.Body)
-	t.Fatalf("status code, want 200, but got %d\n response:%s", res.StatusCode, string(b))
-}
+	if res.StatusCode != 200 {
+		b, _ := ioutil.ReadAll(res.Body)
+		t.Fatalf("status code, want 200, but got %d\n response:%s", res.StatusCode, string(b))
+	}
 
-var got interface{}
-decoder := json.NewDecoder(res.Body)
-if err := decoder.Decode(&got); err != nil {
-	t.Fatal(err)
-}
-defer res.Body.Close()
+	var got interface{}
+	decoder := json.NewDecoder(res.Body)
+	if err := decoder.Decode(&got); err != nil {
+		t.Fatal(err)
+	}
+	defer res.Body.Close()
 
-want := snapshot.Take(t, &got)
-if !reflect.DeepEqual(want, got) {
-	t.Errorf(`want %s, but got %s`, want, got)
+	want := snapshot.Take(t, &got)
+	if !reflect.DeepEqual(want, got) {
+		t.Errorf(`want %s, but got %s`, want, got)
+	}
 }
 ```
 
