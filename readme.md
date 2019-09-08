@@ -201,11 +201,11 @@ $ DEBUG=1 go test -v
 	----------------------------------------
 --- PASS: TestHandler (0.00s)
     --- PASS: TestHandler/plain (0.00s)
-        snapshot.go:56: load testdata: "testdata/TestHandler/plain.golden"
+        snapshot.go:56: load snapshot data: "testdata/TestHandler/plain.golden"
     --- PASS: TestHandler/webtest (0.00s)
-        snapshot.go:56: load testdata: "testdata/TestHandler/webtest.golden"
+        snapshot.go:56: load snapshot data: "testdata/TestHandler/webtest.golden"
     --- PASS: TestHandler/try (0.00s)
-        snapshot.go:56: load testdata: "testdata/TestHandler/try.golden"
+        snapshot.go:56: load snapshot data: "testdata/TestHandler/try.golden"
 PASS
 ok  	github.com/podhmo/go-webtest	0.005s
 ```
@@ -217,8 +217,8 @@ $ go test
 --- FAIL: TestHandler (0.00s)
     --- FAIL: TestHandler/try (0.00s)
         snapshot.go:56: load testdata: "testdata/TestHandler/try.golden"
-        integration_test.go:105: unexpected error, status code, expected 201, but actual 200
-             response: {"result":6}
+        integration_test.go:103: unexpected error, status code, got is "200 OK", but want is "201 Created"
+             response is {"result":6}
 ```
 
 ### ❌ unexpected response
