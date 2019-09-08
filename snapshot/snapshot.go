@@ -48,12 +48,12 @@ func (c *Config) Run(
 	fpath := r.Path(t)
 	existed := r.Exists(fpath)
 	if !existed || c.Overwrite || c.self == fpath || c.self == filepath.Base(fpath) {
-		t.Logf("save testdata: %q", fpath)
+		t.Logf("save snapshot data: %q", fpath)
 		if err := r.Loader.Save(fpath, got, c.Extra); err != nil {
 			t.Fatalf("record: %s", err)
 		}
 	}
-	t.Logf("load testdata: %q", fpath)
+	t.Logf("load snapshot data: %q", fpath)
 
 	var want interface{}
 	if err := r.Loader.Load(fpath, &want, c.Extra); err != nil {

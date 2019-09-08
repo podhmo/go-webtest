@@ -201,11 +201,11 @@ $ DEBUG=1 go test -v
 	----------------------------------------
 --- PASS: TestHandler (0.00s)
     --- PASS: TestHandler/plain (0.00s)
-        snapshot.go:56: load testdata: "testdata/TestHandler/plain.golden"
+        snapshot.go:56: load snapshot data: "testdata/TestHandler/plain.golden"
     --- PASS: TestHandler/webtest (0.00s)
-        snapshot.go:56: load testdata: "testdata/TestHandler/webtest.golden"
+        snapshot.go:56: load snapshot data: "testdata/TestHandler/webtest.golden"
     --- PASS: TestHandler/try (0.00s)
-        snapshot.go:56: load testdata: "testdata/TestHandler/try.golden"
+        snapshot.go:56: load snapshot data: "testdata/TestHandler/try.golden"
 PASS
 ok  	github.com/podhmo/go-webtest	0.005s
 ```
