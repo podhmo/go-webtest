@@ -79,7 +79,7 @@ func TestWithTry(t *testing.T) {
 }
 ```
 
-If modify request is not needed, it is also ok, when the response does not include *semi-random value* (for example the value of now time).
+If modify response is not needed, it is also ok, when the response does not include *semi-random value* (for example the value of now time).
 
 ```go
 c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
