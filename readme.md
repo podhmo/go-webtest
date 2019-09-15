@@ -2,8 +2,6 @@
 
 # go-webtest
 
-Sometimes, easy is better than simple.
-
 features
 
 - handling response by [custom interface](https://godoc.org/github.com/podhmo/go-webtest/testclient#Response) 
@@ -94,7 +92,7 @@ try.It{
 )
 ```
 
-### without-webtest (but using snapshot testing)
+### without-webtest (but snapshot testing)
 
 ```go
 import (
@@ -162,7 +160,7 @@ The snapshot data is saved in `testdata/<test function name>.golden` (e.g. testd
 
 Output examples.
 
-### ✅ debug trace (this test is not failed)
+### ✅ debug trace (not failed)
 
 ```console
 $ DEBUG=1 go test -v
