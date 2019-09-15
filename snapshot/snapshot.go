@@ -47,7 +47,7 @@ func (c *Config) Run(
 	r := c.Recorder
 	fpath := r.Path(t)
 	existed := r.Exists(fpath)
-	if !existed || c.Overwrite || c.self == fpath || c.self == filepath.Base(fpath) {
+	if !existed || c.Overwrite || strings.Contains(fpath, c.self) {
 		t.Logf("save snapshot data: %q", fpath)
 		if err := r.Loader.Save(fpath, got, c.Extra); err != nil {
 			t.Fatalf("record: %s", err)
