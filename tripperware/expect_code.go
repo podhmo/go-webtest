@@ -42,6 +42,9 @@ func (err *statusError) Error() string {
 
 	fmt.Fprintln(w, "\x1b[32mResponse: ------------------------------\x1b[0m")
 	fmt.Fprint(w, err.text)
+	if !strings.HasSuffix(strings.TrimRight(err.text, "  \t"), "\n") {
+		fmt.Fprintln(w, "")
+	}
 	fmt.Fprintln(w, "\x1b[32m----------------------------------------\x1b[0m")
 
 	return fmt.Sprintf(
