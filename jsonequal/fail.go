@@ -36,5 +36,5 @@ func FailJSONDiff(
 	diff, s := jsondiff.Compare(lb, rb, &options)
 	prefix := c.Prefix
 	c.Prefix = "\n"
-	return fmt.Errorf("%s (status=%s)\n%s\n%s", prefix, diff.String(), s, FailPlain(c, left, right, lb, rb).Error())
+	return fmt.Errorf("%sstatus=%s\n%s\n%s", prefix, diff.String(), s, FailPlain(c, left, right, lb, rb).Error())
 }

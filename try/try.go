@@ -51,11 +51,11 @@ func (it It) With(
 		}
 
 		mismatch := jsonequal.ShouldBeSame(
-			jsonequal.From(actual),
 			jsonequal.From(it.Want),
-			jsonequal.WithPrefix("jsondiff, got and want is not same."),
-			jsonequal.WithLeftName("left (got) "),
-			jsonequal.WithRightName("right (want) "),
+			jsonequal.From(actual),
+			jsonequal.WithPrefix("jsondiff, got and want is not same.\n"),
+			jsonequal.WithLeftName("left (want) "),
+			jsonequal.WithRightName("right (got) "),
 		)
 		if mismatch != nil {
 			t.Errorf("%s", mismatch)
