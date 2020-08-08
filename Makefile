@@ -8,5 +8,5 @@ lint:
 
 # example (for testing)
 httpbin:
-	go run cmd/httpbin/main.go localhost:8080
+	cd examples/00httpbin && go run ./cmd/httpbin/main.go localhost:8080
 .PHONY: httpbin

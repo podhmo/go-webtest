@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/podhmo/go-webtest/httpbin"
+	"m/httpbin"
 )
 
 func main() {

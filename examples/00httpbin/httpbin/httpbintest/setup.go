@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/podhmo/go-webtest/httpbin"
+	"m/httpbin"
 )
 
 // NewTestAPIServer :
