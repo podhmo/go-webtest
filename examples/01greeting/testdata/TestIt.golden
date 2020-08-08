@@ -1,0 +1,16 @@
+{
+  "modifiedAt": "2020-08-09T00:59:03.193201+09:00",
+  "data": {
+    "request": {
+      "method": "GET",
+      "path": "/"
+    },
+    "response": {
+      "data": {
+        "message": "Good morning",
+        "time": "2000-01-01 00:00:00 +0000 UTC"
+      },
+      "statusCode": 200
+    }
+  }
+}
