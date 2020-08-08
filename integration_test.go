@@ -22,7 +22,7 @@ type Input struct {
 	Values []int
 }
 
-func Add(w http.ResponseWriter, req *http.Request) {
+func handleAdd(w http.ResponseWriter, req *http.Request) {
 	var data Input
 	decoder := json.NewDecoder(req.Body)
 	if err := decoder.Decode(&data); err != nil {
@@ -44,12 +44,12 @@ func Add(w http.ResponseWriter, req *http.Request) {
 
 func TestHandler(t *testing.T) {
 	t.Run("plain", func(t *testing.T) {
-		w := httptest.NewRecorder()
+		rec := httptest.NewRecorder()
 		req := httptest.NewRequest("POST", "/", bytes.NewBufferString(`{"values": [1,2,3]}`))
 		req.Header.Set("Content-Type", "application/json")
 
-		Add(w, req)
-		res := w.Result()
+		handleAdd(rec, req)
+		res := rec.Result()
 
 		if res.StatusCode != 200 {
 			b, _ := ioutil.ReadAll(res.Body)
@@ -70,7 +70,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("webtest", func(t *testing.T) {
-		c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
+		c := webtest.NewClientFromHandler(http.HandlerFunc(handleAdd))
 		var want interface{}
 		got, err := c.Post("/",
 			webtest.WithJSONString(`{"values": [1,2,3]}`),
@@ -91,7 +91,7 @@ func TestHandler(t *testing.T) {
 	})
 
 	t.Run("try", func(t *testing.T) {
-		c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
+		c := webtest.NewClientFromHandler(http.HandlerFunc(handleAdd))
 
 		var want interface{}
 		try.It{

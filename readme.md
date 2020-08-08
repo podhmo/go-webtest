@@ -27,7 +27,7 @@ import (
 )
 
 func TestWithWebtest(t *testing.T) {
-	c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
+	c := webtest.NewClientFromHandler(http.HandlerFunc(handleAdd))
 	var want interface{}
 	got, err := c.Post("/",
 		webtest.WithJSON(bytes.NewBufferString(`{"values": [1,2,3]}`)),
@@ -61,7 +61,7 @@ import (
 
 
 func TestWithTry(t *testing.T) {
-	c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
+	c := webtest.NewClientFromHandler(http.HandlerFunc(handleAdd))
 
 	var want interface{}
 	try.It{
@@ -80,7 +80,7 @@ func TestWithTry(t *testing.T) {
 If modify response is not needed, it is also ok, when the response does not include *semi-random value* (for example the value of now time).
 
 ```go
-c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
+c := webtest.NewClientFromHandler(http.HandlerFunc(handleAdd))
 
 var want interface{}
 try.It{
@@ -108,12 +108,12 @@ import (
 )
 
 func TestWithoutWebtest(t *testing.T) {
-	w := httptest.NewRecorder()
+	rec := httptest.NewRecorder()
 	req := httptest.NewRequest("POST", "/", bytes.NewBufferString(`{"values": [1,2,3]}`))
 	req.Header.Set("Content-Type", "application/json")
 
-	Add(w, req)
-	res := w.Result()
+	handleAdd(rec, req)
+	res := rec.Result()
 
 	if res.StatusCode != 200 {
 		b, _ := ioutil.ReadAll(res.Body)
