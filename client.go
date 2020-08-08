@@ -1,6 +1,7 @@
 package webtest
 
 import (
+	"bytes"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -204,6 +205,11 @@ func WithJSON(body io.Reader) Option {
 			req.Header.Set("Content-Type", "application/json")
 		})
 	})
+}
+
+// WithJSONString setup as json request
+func WithJSONString(body string) Option {
+	return WithJSON(bytes.NewBufferString(body))
 }
 
 // WithModifyRequest adds request modifyRequest

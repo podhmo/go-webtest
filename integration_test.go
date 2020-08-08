@@ -73,7 +73,7 @@ func TestHandler(t *testing.T) {
 		c := webtest.NewClientFromHandler(http.HandlerFunc(Add))
 		var want interface{}
 		got, err := c.Post("/",
-			webtest.WithJSON(bytes.NewBufferString(`{"values": [1,2,3]}`)),
+			webtest.WithJSONString(`{"values": [1,2,3]}`),
 			webtest.WithTripperware(
 				tripperware.ExpectCode(t, 200),
 				tripperware.GetExpectedDataFromSnapshot(t, &want),
@@ -102,7 +102,7 @@ func TestHandler(t *testing.T) {
 			},
 		}.With(t, c,
 			"POST", "/",
-			webtest.WithJSON(bytes.NewBufferString(`{"values": [1,2,3]}`)),
+			webtest.WithJSONString(`{"values": [1,2,3]}`),
 		)
 	})
 }
